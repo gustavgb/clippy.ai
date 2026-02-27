@@ -81,154 +81,58 @@
   });
 </script>
 
-<div class="search-bar">
+<div
+  class="flex items-center gap-2 px-3 py-2 border-b border-base-300 shrink-0"
+>
   <input
     bind:this={inputEl}
     bind:value={query}
     type="text"
     placeholder="Search by title, URL, tags, note, or #id…"
-    class="search-input"
+    class="input input-sm input-ghost flex-1 font-mono"
     onkeydown={handleKeydown}
   />
-  <button class="btn-close" onclick={onclose} title="Close search (Esc)">
-    ✕
-  </button>
+  <button
+    class="btn btn-ghost btn-sm btn-circle"
+    onclick={onclose}
+    title="Close search (Esc)">✕</button
+  >
 </div>
 
 {#if results.length > 0}
-  <ul class="results">
+  <ul class="menu p-0 overflow-y-auto flex-1">
     {#each results as link (link.id)}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <li class="result-item" onclick={() => onselect(link)}>
-        <div class="result-header">
-          <span class="result-id">#{link.id}</span>
-          <span class="result-title">{link.title || link.url}</span>
-          {#if link.tags.length > 0}
-            <span class="result-tags">{link.tags.join(", ")}</span>
+      <li onclick={() => onselect(link)}>
+        <div class="flex flex-col gap-0.5">
+          <div class="flex items-baseline gap-2 flex-wrap">
+            <span class="badge badge-outline badge-sm font-mono"
+              >#{link.id}</span
+            >
+            <span class="font-medium">{link.title || link.url}</span>
+            {#if link.tags.length > 0}
+              <span class="text-xs text-primary font-mono"
+                >{link.tags.join(", ")}</span
+              >
+            {/if}
+          </div>
+          <div class="text-xs text-primary font-mono opacity-75 truncate">
+            {link.url}
+          </div>
+          {#if link.note}
+            <div class="text-xs text-base-content/60">
+              {link.note.slice(0, 120)}{link.note.length > 120 ? "…" : ""}
+            </div>
           {/if}
         </div>
-        <div class="result-url">{link.url}</div>
-        {#if link.note}
-          <div class="result-note">
-            {link.note.slice(0, 120)}{link.note.length > 120 ? "…" : ""}
-          </div>
-        {/if}
       </li>
     {/each}
   </ul>
 {:else if query.trim()}
-  <div class="no-results">No results for "{query}"</div>
+  <div class="py-8 text-center text-base-content/60 text-sm font-mono">
+    No results for "{query}"
+  </div>
 {/if}
 
-<style>
-  .search-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .search-input {
-    flex: 1;
-    background: none;
-    border: none;
-    color: var(--text);
-    font-size: 15px;
-    font-family: var(--font-mono);
-    outline: none;
-  }
-
-  .search-input::placeholder {
-    color: var(--text-dim);
-  }
-
-  .btn-close {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: color 0.15s;
-    flex-shrink: 0;
-  }
-
-  .btn-close:hover {
-    color: var(--text);
-  }
-
-  .results {
-    list-style: none;
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  .result-item {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-
-  .result-item:hover {
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
-  }
-
-  .result-header {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin-bottom: 2px;
-    flex-wrap: wrap;
-  }
-
-  .result-id {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    flex-shrink: 0;
-  }
-
-  .result-title {
-    font-size: 14px;
-    color: var(--text);
-    font-weight: 500;
-    word-break: break-word;
-  }
-
-  .result-tags {
-    font-size: 11px;
-    color: var(--accent);
-    font-family: var(--font-mono);
-  }
-
-  .result-url {
-    font-size: 12px;
-    color: var(--accent);
-    font-family: var(--font-mono);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    opacity: 0.75;
-  }
-
-  .result-note {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-top: 3px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-
-  .no-results {
-    padding: 32px 16px;
-    color: var(--text-dim);
-    text-align: center;
-    font-size: 14px;
-    font-family: var(--font-mono);
-  }
-</style>
+<style></style>

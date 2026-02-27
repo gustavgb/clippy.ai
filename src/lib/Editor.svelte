@@ -97,27 +97,9 @@
   });
 </script>
 
-<div bind:this={editorEl} class="editor-wrap"></div>
+<div
+  bind:this={editorEl}
+  class="flex-1 min-h-0 overflow-hidden flex flex-col"
+></div>
 
-<style>
-  .editor-wrap {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    /* let CodeMirror fill the full height */
-    display: flex;
-    flex-direction: column;
-  }
-
-  .editor-wrap :global(.cm-editor) {
-    flex: 1;
-    height: 100%;
-  }
-
-  .editor-wrap :global(.cm-content) {
-    padding: 8px 12px 32px !important;
-    max-width: none !important;
-    margin-inline: 0 !important;
-    padding-inline: 12px !important;
-  }
-</style>
+<style></style>

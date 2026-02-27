@@ -1,5 +1,5 @@
 {
-  "name": "himark",
+  "name": "holgerai",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -24,9 +24,12 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5",
+    "@tailwindcss/vite": "^4.2.1",
     "@tauri-apps/cli": "^2",
     "@types/node": "^25.3.0",
+    "daisyui": "^5.5.19",
     "svelte": "^5",
+    "tailwindcss": "^4.2.1",
     "typescript": "^5",
     "vite": "^6"
   }

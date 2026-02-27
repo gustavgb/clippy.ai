@@ -117,8 +117,8 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="app">
-  <!-- ─── Toolbar ─────────────────────────────────────────────────────────── -->
+<div class="flex flex-col h-full bg-base-100 overflow-hidden">
+  <!-- ─── Toolbar ───────────────────────────────────────────────────────── -->
   {#if searchOpen}
     <SearchOverlay
       links={store.sortedLinks}
@@ -129,45 +129,49 @@
       onclose={() => (searchOpen = false)}
     />
   {:else}
-    <div class="toolbar">
+    <div
+      class="flex items-center gap-2 px-4 py-2.5 border-b border-base-300 shrink-0"
+    >
       <input
         bind:this={urlInputEl}
         bind:value={urlInput}
         type="url"
         placeholder="Paste a URL to bookmark…"
-        class="url-input"
+        class="input input-sm flex-1 min-w-0"
         onkeydown={onUrlKeydown}
       />
-      <button class="btn-add" onclick={addLink} disabled={!urlInput.trim()}>
-        Add
-      </button>
       <button
-        class="btn-search"
-        onclick={() => (searchOpen = true)}
-        title="Quick Search (Ctrl+K)"
+        class="btn btn-sm btn-primary shrink-0"
+        onclick={addLink}
+        disabled={!urlInput.trim()}>Add</button
       >
-        ⌕
-      </button>
+      <button
+        class="btn btn-sm btn-ghost shrink-0"
+        onclick={() => (searchOpen = true)}
+        title="Quick Search (Ctrl+K)">⌕</button
+      >
     </div>
 
-    <!-- ─── File info bar ────────────────────────────────────────────────── -->
+    <!-- ─── File info bar ──────────────────────────────────────────────── -->
     {#if !store.filePath}
-      <div class="no-file-hint">
+      <div
+        class="px-4 py-2 text-xs text-base-content/60 border-b border-base-300 shrink-0"
+      >
         No data file open.
-        <button class="link-btn" onclick={() => store.open()}
+        <button class="link link-primary text-xs" onclick={() => store.open()}
           >Open a file</button
         >
         or
-        <button class="link-btn" onclick={() => store.saveAs()}
+        <button class="link link-primary text-xs" onclick={() => store.saveAs()}
           >create a new one</button
         >.
       </div>
     {/if}
 
-    <!-- ─── Link list ────────────────────────────────────────────────────── -->
-    <div class="link-list">
+    <!-- ─── Link list ──────────────────────────────────────────────────── -->
+    <div class="flex-1 overflow-y-auto">
       {#if store.sortedLinks.length === 0 && store.filePath}
-        <div class="empty">
+        <div class="py-12 px-6 text-center text-base-content/60 text-sm">
           No bookmarks yet. Paste a URL above to get started.
         </div>
       {/if}
@@ -175,226 +179,47 @@
       {#each store.sortedLinks as link (link.id)}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="link-card" onclick={() => openLink(link)}>
-          <div class="link-top">
-            <span class="link-id">#{link.id}</span>
-            <span class="link-title">{link.title || "(untitled)"}</span>
-            <span class="link-date">{formatDate(link.lastUpdated)}</span>
+        <div
+          class="px-4 py-3.5 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-200"
+          onclick={() => openLink(link)}
+        >
+          <div class="flex items-baseline gap-2 mb-1 flex-wrap">
+            <span class="text-xs text-base-content/60 font-mono shrink-0"
+              >#{link.id}</span
+            >
+            <span class="text-base flex-1 min-w-0"
+              >{link.title || "(untitled)"}</span
+            >
+            <span class="text-xs text-base-content/60 font-mono shrink-0"
+              >{formatDate(link.lastUpdated)}</span
+            >
           </div>
           {#if link.tags.length > 0}
-            <div class="link-tags">
+            <div class="flex flex-wrap gap-1 mb-1">
               {#each link.tags as tag}
-                <span class="tag">{tag}</span>
+                <span class="badge badge-outline badge-sm">{tag}</span>
               {/each}
             </div>
           {/if}
           {#if link.note}
-            <div class="link-note">
+            <div
+              class="text-sm text-base-content/60 whitespace-pre-wrap break-words mb-1"
+            >
               {link.note.slice(0, 200)}{link.note.length > 200 ? "…" : ""}
             </div>
           {/if}
-          <div class="link-url">{link.url}</div>
+          <div class="text-xs text-primary font-mono opacity-70 truncate">
+            {link.url}
+          </div>
         </div>
       {/each}
     </div>
   {/if}
 </div>
 
-<!-- ─── Link Modal ────────────────────────────────────────────────────────── -->
+<!-- ─── Link Modal ──────────────────────────────────────────────────────── -->
 {#if activeLink}
   <LinkModal link={activeLink} onclose={closeModal} />
 {/if}
 
-<style>
-  .app {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background: var(--bg);
-    overflow: hidden;
-  }
-
-  /* ─── Toolbar ─────────────────────────────────────────────────────────── */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .url-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 14px;
-    font-family: var(--font-mono);
-    padding: 7px 12px;
-    transition: border-color 0.15s;
-  }
-
-  .url-input:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-
-  .url-input::placeholder {
-    color: var(--text-dim);
-  }
-
-  .btn-add {
-    background: var(--accent);
-    border: none;
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: var(--font-mono);
-    padding: 7px 16px;
-    transition: opacity 0.15s;
-    flex-shrink: 0;
-  }
-
-  .btn-add:hover:not(:disabled) {
-    opacity: 0.85;
-  }
-
-  .btn-add:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-
-  .btn-search {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text-dim);
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px 10px;
-    transition:
-      color 0.15s,
-      border-color 0.15s;
-    flex-shrink: 0;
-    line-height: 1;
-  }
-
-  .btn-search:hover {
-    color: var(--text);
-    border-color: var(--accent);
-  }
-
-  /* ─── No file hint ────────────────────────────────────────────────────── */
-  .no-file-hint {
-    padding: 8px 16px;
-    font-size: 13px;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    font-family: var(--font-mono);
-  }
-
-  .link-btn {
-    background: none;
-    border: none;
-    color: var(--accent);
-    cursor: pointer;
-    font-size: 13px;
-    font-family: var(--font-mono);
-    padding: 0;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  /* ─── Link list ───────────────────────────────────────────────────────── */
-  .link-list {
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .empty {
-    padding: 48px 24px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 14px;
-    font-family: var(--font-mono);
-  }
-
-  .link-card {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-
-  .link-card:hover {
-    background: color-mix(in srgb, var(--accent) 6%, transparent);
-  }
-
-  .link-top {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin-bottom: 4px;
-    flex-wrap: wrap;
-  }
-
-  .link-id {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    flex-shrink: 0;
-  }
-
-  .link-title {
-    font-size: 15px;
-    color: var(--text);
-    flex: 1;
-    min-width: 0;
-  }
-
-  .link-date {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    flex-shrink: 0;
-  }
-
-  .link-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 4px;
-  }
-
-  .tag {
-    font-size: 11px;
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    color: var(--accent);
-    border-radius: 4px;
-    padding: 1px 7px;
-    font-family: var(--font-mono);
-  }
-
-  .link-note {
-    font-size: 13px;
-    color: var(--text-dim);
-    white-space: pre-wrap;
-    word-break: break-word;
-    margin-bottom: 4px;
-    font-family: var(--font-mono);
-  }
-
-  .link-url {
-    font-size: 12px;
-    color: var(--accent);
-    font-family: var(--font-mono);
-    opacity: 0.7;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-</style>
+<style></style>
