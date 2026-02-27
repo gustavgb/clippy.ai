@@ -2,7 +2,7 @@
 
 # Holger.AI
 
-A bookmarking and research tool using AI.
+A private, git-friendly, local-first bookmarking and research tool with optional AI power-ups 🚀
 
 ## Features
 
