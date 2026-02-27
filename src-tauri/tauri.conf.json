@@ -1,0 +1,52 @@
+{
+  "productName": "HolgerAI",
+  "version": "0.1.0",
+  "identifier": "dk.gusgram.holgerai",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "fileAssociations": [
+      {
+        "name": "Markdown",
+        "description": "Markdown Document",
+        "mimeType": "text/markdown",
+        "ext": [
+          "md",
+          "markdown"
+        ]
+      }
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "HolgerAI",
+        "width": 1000,
+        "height": 720,
+        "minWidth": 480,
+        "minHeight": 320,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "zoomHotkeysEnabled": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "himark",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "^6",
+    "@codemirror/commands": "^6",
+    "@codemirror/lang-markdown": "^6",
+    "@codemirror/language": "^6",
+    "@codemirror/language-data": "^6",
+    "@codemirror/state": "^6",
+    "@codemirror/view": "^6",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-fs": "^2.4.5",
+    "@tauri-apps/plugin-global-shortcut": "^2.3.1"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5",
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^25.3.0",
+    "svelte": "^5",
+    "typescript": "^5",
+    "vite": "^6"
+  }
+}

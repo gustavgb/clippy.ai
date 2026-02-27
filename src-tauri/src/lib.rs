@@ -1,0 +1,208 @@
+use std::sync::Mutex;
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+use tauri::{Emitter, Manager};
+
+/// Holds the file path passed as a CLI argument (or via file-manager association).
+struct AppState {
+    initial_file: Mutex<Option<String>>,
+}
+
+/// Called by the frontend on startup to retrieve and consume the initial file path.
+#[tauri::command]
+fn get_initial_file(state: tauri::State<AppState>) -> Option<String> {
+    state.initial_file.lock().unwrap().take()
+}
+
+/// Sets the window title.
+#[tauri::command]
+fn set_title(app: tauri::AppHandle, title: String) {
+    let app2 = app.clone();
+    app.run_on_main_thread(move || {
+        if let Some(win) = app2.get_webview_window("main") {
+            win.set_title(&title).ok();
+            #[cfg(target_os = "linux")]
+            if let Ok(gtk_win) = win.gtk_window() {
+                use gtk::prelude::{BinExt, Cast, GtkWindowExt, WidgetExt};
+                if let Some(titlebar) = gtk_win.titlebar() {
+                    match titlebar.dynamic_cast::<gtk::EventBox>() {
+                        Ok(eb) => {
+                            if let Some(child) = BinExt::child(&eb) {
+                                if let Ok(hb) = child.dynamic_cast::<gtk::HeaderBar>() {
+                                    gtk::prelude::HeaderBarExt::set_title(&hb, Some(&title));
+                                }
+                            }
+                        }
+                        Err(titlebar) => {
+                            if let Ok(hb) = titlebar.dynamic_cast::<gtk::HeaderBar>() {
+                                gtk::prelude::HeaderBarExt::set_title(&hb, Some(&title));
+                            }
+                        }
+                    }
+                }
+                gtk_win.queue_draw();
+            }
+        }
+    })
+    .ok();
+}
+
+#[tauri::command]
+fn close_app(app: tauri::AppHandle) {
+    app.exit(0)
+}
+
+/// Returns the path to ~/.config/holger.ai/settings.json, creating the
+/// directory if it does not yet exist.
+#[tauri::command]
+fn get_settings_path() -> Result<String, String> {
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .map_err(|_| "Could not determine home directory".to_string())?;
+    let config_dir = std::path::Path::new(&home)
+        .join(".config")
+        .join("holger.ai");
+    if !config_dir.exists() {
+        std::fs::create_dir_all(&config_dir).map_err(|e| e.to_string())?;
+    }
+    let settings_path = config_dir.join("settings.json");
+    Ok(settings_path.to_string_lossy().into_owned())
+}
+
+/// Fetches the <title> of a web page via an HTTP GET request.
+#[tauri::command]
+async fn fetch_page_title(url: String) -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .user_agent("Mozilla/5.0 (compatible; holger.ai/1.0; +https://github.com/holger-ai)")
+        .timeout(std::time::Duration::from_secs(10))
+        .danger_accept_invalid_certs(false)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    let body = response.text().await.map_err(|e| e.to_string())?;
+
+    // Simple title extraction — find <title>...</title>
+    let lower = body.to_lowercase();
+    if let Some(start) = lower.find("<title") {
+        if let Some(gt) = lower[start..].find('>') {
+            let after_gt = &body[start + gt + 1..];
+            let lower_after = after_gt.to_lowercase();
+            if let Some(end) = lower_after.find("</title>") {
+                let raw_title = &after_gt[..end];
+                // Decode common HTML entities
+                let title = raw_title
+                    .replace("&amp;", "&")
+                    .replace("&lt;", "<")
+                    .replace("&gt;", ">")
+                    .replace("&quot;", "\"")
+                    .replace("&#39;", "'")
+                    .replace("&nbsp;", " ");
+                let title = title.trim().to_string();
+                if !title.is_empty() {
+                    return Ok(title);
+                }
+            }
+        }
+    }
+
+    // Fall back to hostname
+    if let Ok(parsed) = url::Url::parse(&url) {
+        if let Some(host) = parsed.host_str() {
+            return Ok(host.to_string());
+        }
+    }
+
+    Ok(url)
+}
+
+/// Opens a URL in the system's default browser.
+#[tauri::command]
+async fn open_url(url: String) -> Result<(), String> {
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("cmd")
+            .args(["/c", "start", "", &url])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    #[cfg(target_os = "linux")]
+    if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+
+    let initial_file = std::env::args().skip(1).find(|a| !a.starts_with('-'));
+
+    tauri::Builder::default()
+        .manage(AppState {
+            initial_file: Mutex::new(initial_file),
+        })
+        .invoke_handler(tauri::generate_handler![
+            get_initial_file,
+            set_title,
+            close_app,
+            get_settings_path,
+            fetch_page_title,
+            open_url,
+        ])
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            let open_i = MenuItem::with_id(
+                app,
+                "open",
+                "Open Data File\u{2026}",
+                true,
+                Some("CmdOrCtrl+O"),
+            )?;
+            let save_i = MenuItem::with_id(app, "save", "Save", true, Some("CmdOrCtrl+S"))?;
+            let save_as_i = MenuItem::with_id(
+                app,
+                "save_as",
+                "Save As\u{2026}",
+                true,
+                Some("CmdOrCtrl+Shift+S"),
+            )?;
+            let sep = PredefinedMenuItem::separator(app)?;
+            let quit_i = MenuItem::with_id(app, "quit", "Quit", true, Some("CmdOrCtrl+Q"))?;
+
+            let file_menu = Submenu::with_items(
+                app,
+                "File",
+                true,
+                &[&open_i, &save_i, &save_as_i, &sep, &quit_i],
+            )?;
+
+            let menu = Menu::with_items(app, &[&file_menu])?;
+            app.set_menu(menu)?;
+
+            app.on_menu_event(|app, event| match event.id().as_ref() {
+                id => {
+                    app.emit("menu-action", id).ok();
+                }
+            });
+
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
