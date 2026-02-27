@@ -51,7 +51,7 @@ fn close_app(app: tauri::AppHandle) {
     app.exit(0)
 }
 
-/// Returns the path to ~/.config/holger.ai/settings.json, creating the
+/// Returns the path to ~/.config/clippy.ai/settings.json, creating the
 /// directory if it does not yet exist.
 #[tauri::command]
 fn get_settings_path() -> Result<String, String> {
@@ -60,7 +60,7 @@ fn get_settings_path() -> Result<String, String> {
         .map_err(|_| "Could not determine home directory".to_string())?;
     let config_dir = std::path::Path::new(&home)
         .join(".config")
-        .join("holger.ai");
+        .join("clippy.ai");
     if !config_dir.exists() {
         std::fs::create_dir_all(&config_dir).map_err(|e| e.to_string())?;
     }
@@ -72,7 +72,7 @@ fn get_settings_path() -> Result<String, String> {
 #[tauri::command]
 async fn fetch_page_title(url: String) -> Result<String, String> {
     let client = reqwest::Client::builder()
-        .user_agent("Mozilla/5.0 (compatible; holger.ai/1.0; +https://github.com/holger-ai)")
+        .user_agent("Mozilla/5.0 (compatible; clippy.ai/1.0)")
         .timeout(std::time::Duration::from_secs(10))
         .danger_accept_invalid_certs(false)
         .build()
@@ -119,7 +119,7 @@ async fn fetch_page_title(url: String) -> Result<String, String> {
 #[tauri::command]
 async fn list_gemini_models(api_key: String) -> Result<Vec<String>, String> {
     let client = reqwest::Client::builder()
-        .user_agent("Mozilla/5.0 (compatible; holger.ai/1.0)")
+        .user_agent("Mozilla/5.0 (compatible; clippy.ai/1.0)")
         .timeout(std::time::Duration::from_secs(10))
         .build()
         .map_err(|e| e.to_string())?;
@@ -158,7 +158,7 @@ async fn fetch_ai_summary(
     prompt_template: String,
 ) -> Result<String, String> {
     let client = reqwest::Client::builder()
-        .user_agent("Mozilla/5.0 (compatible; holger.ai/1.0)")
+        .user_agent("Mozilla/5.0 (compatible; clippy.ai/1.0)")
         .timeout(std::time::Duration::from_secs(15))
         .build()
         .map_err(|e| e.to_string())?;

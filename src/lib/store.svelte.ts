@@ -34,8 +34,8 @@ class BookmarkStore {
   // ─── Window title ──────────────────────────────────────────────────────────
 
   updateTitle() {
-    const name = this.filePath ? this.filePath.split("/").at(-1)! : "holger.ai";
-    const title = this.dirty ? `• ${name} — holger.ai` : `${name} — holger.ai`;
+    const name = this.filePath ? this.filePath.split("/").at(-1)! : "clippy.ai";
+    const title = this.dirty ? `• ${name} — clippy.ai` : `${name} — clippy.ai`;
     document.title = title;
     invoke("set_title", { title });
   }

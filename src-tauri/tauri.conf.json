@@ -1,7 +1,7 @@
 {
-  "productName": "holger.ai",
+  "productName": "clippy.ai",
   "version": "0.1.0",
-  "identifier": "dk.gusgram.holger.ai",
+  "identifier": "dk.gusgram.clippy.ai",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -22,7 +22,7 @@
   "app": {
     "windows": [
       {
-        "title": "holger.ai",
+        "title": "clippy.ai",
         "width": 1000,
         "height": 720,
         "minWidth": 480,

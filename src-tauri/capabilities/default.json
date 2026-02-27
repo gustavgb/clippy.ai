@@ -1,6 +1,6 @@
 {
   "identifier": "default",
-  "description": "Default capability for holger.ai",
+  "description": "Default capability for clippy.ai",
   "windows": [
     "main"
   ],

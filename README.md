@@ -1,6 +1,6 @@
-<img src="holgeraiicon.png" width="50px" height="50px">
+<img src="clippyaiicon.png" width="50px" height="50px">
 
-# Holger.AI
+# clippy.ai
 
 A private, git-friendly, local-first bookmarking and research tool with optional AI power-ups 🚀
 
