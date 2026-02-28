@@ -301,13 +301,18 @@ pub fn run() {
                 Some("CmdOrCtrl+Shift+S"),
             )?;
             let sep = PredefinedMenuItem::separator(app)?;
+            let prefs_i =
+                MenuItem::with_id(app, "preferences", "Preferences", true, Some("CmdOrCtrl+,"))?;
+            let sep2 = PredefinedMenuItem::separator(app)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, Some("CmdOrCtrl+Q"))?;
 
             let file_menu = Submenu::with_items(
                 app,
                 "File",
                 true,
-                &[&new_i, &open_i, &save_i, &save_as_i, &sep, &quit_i],
+                &[
+                    &new_i, &open_i, &save_i, &save_as_i, &sep, &prefs_i, &sep2, &quit_i,
+                ],
             )?;
 
             let menu = Menu::with_items(app, &[&file_menu])?;

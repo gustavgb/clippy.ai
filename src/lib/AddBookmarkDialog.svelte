@@ -44,7 +44,7 @@
   }}
 >
   <div
-    class="bg-base-100 border border-base-300 rounded-xl shadow-2xl p-6 flex flex-col gap-4"
+    class="bg-base-100 border border-base-300 rounded-md shadow-2xl p-6 flex flex-col gap-4"
     style="width: min(480px, calc(100vw - 48px));"
   >
     <h2 class="text-lg font-semibold">Add Bookmark</h2>

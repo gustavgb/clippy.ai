@@ -4,12 +4,9 @@
   import { listen } from "@tauri-apps/api/event";
   import { store } from "./lib/store.svelte";
   import { settings } from "./lib/settings.svelte";
-  import NavBar from "./lib/NavBar.svelte";
   import BookmarksPage from "./lib/BookmarksPage.svelte";
   import SettingsPage from "./lib/SettingsPage.svelte";
-
-  type Tab = "bookmarks" | "settings";
-  let activeTab = $state<Tab>("bookmarks");
+  import { tabs } from "./lib/tabs.svelte";
 
   onMount(async () => {
     await settings.init();
@@ -27,6 +24,7 @@
       else if (id === "open") await store.open();
       else if (id === "save") await store.save();
       else if (id === "save_as") await store.saveAs();
+      else if (id === "preferences") tabs.setActiveTab("settings");
       else if (id === "quit") invoke("close_app");
     });
     return () => {
@@ -54,11 +52,9 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="flex flex-col h-full bg-base-100 overflow-hidden">
-  <NavBar {activeTab} onTabChange={(t) => (activeTab = t)} />
-
-  {#if activeTab === "bookmarks"}
+  {#if tabs.activeTab === "bookmarks"}
     <BookmarksPage />
-  {:else if activeTab === "settings"}
+  {:else if tabs.activeTab === "settings"}
     <SettingsPage />
   {/if}
 </div>

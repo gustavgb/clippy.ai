@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
   import { settings } from "./settings.svelte";
+  import { tabs } from "./tabs.svelte";
 
   let keyInput = $state(settings.geminiApiKey);
   let modelInput = $state(settings.geminiModel);
@@ -44,10 +45,45 @@
     promptInput =
       "Summarize the main content of the following webpage in 3-5 sentences.\n\nIMPORTANT: Detect the language of the webpage. If the webpage is written in Danish, you MUST write the entire summary in Danish. If it is written in English, write in English. For any other language, write in English.\n\nWebpage content:\n{content}\n\nRemember: if the webpage above is in Danish, your summary MUST be in Danish.";
   }
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      tabs.setActiveTab("bookmarks");
+    }
+  }
 </script>
 
-<div class="flex-1 overflow-y-auto p-6 max-w-xl">
-  <h2 class="text-xl font-semibold mb-6">Settings</h2>
+<svelte:window onkeydown={onKeydown} />
+
+<div class="flex-1 overflow-y-auto p-6">
+  <div class="flex items-center w-full mb-6 justify-between">
+    <h2 class="text-xl font-semibold">Settings</h2>
+    <button
+      type="button"
+      class="btn btn-circle btn-ghost"
+      onclick={() => tabs.setActiveTab("bookmarks")}
+      title="Close settings"
+      ><svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="feather feather-x"
+        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+          x1="6"
+          y1="6"
+          x2="18"
+          y2="18"
+        ></line></svg
+      ></button
+    >
+  </div>
 
   <!-- API Key -->
   <div class="form-control mb-4">
@@ -88,7 +124,7 @@
         bind:value={modelInput}
       />
       <button
-        class="btn btn-outline btn-sm"
+        class="btn btn-outline"
         disabled={!keyInput || listingModels}
         onclick={listModels}
         title="Fetch available models from the API"
