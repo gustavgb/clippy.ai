@@ -1,9 +1,14 @@
 <script lang="ts">
   import { store } from "./store.svelte";
+  import { settings } from "./settings.svelte";
   import BookmarkPanel from "./BookmarkPanel.svelte";
   import AddBookmarkDialog from "./AddBookmarkDialog.svelte";
   import type { Bookmark } from "./types";
   import { fuzzyScore } from "./utils";
+
+  function fileName(path: string) {
+    return path.split("/").at(-1) ?? path;
+  }
 
   let search = $state("");
   let activeBookmark = $state<Bookmark | null>(null);
@@ -56,6 +61,92 @@
     placeholder="Search bookmarks…"
     class="input input-sm flex-1 min-w-0"
   />
+  {#if settings.recentWorkspaces.length > 0}
+    <div class="dropdown dropdown-end shrink-0">
+      <button
+        tabindex="0"
+        class="btn btn-sm btn-ghost"
+        title="Switch workspace"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="size-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+          />
+        </svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="size-3 opacity-60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <ul
+        tabindex="0"
+        class="dropdown-content menu bg-base-100 rounded-box z-50 shadow border border-base-300 w-72 p-1 mt-1"
+      >
+        {#each settings.recentWorkspaces as path (path)}
+          <li>
+            <button
+              class="flex items-center gap-2 text-left w-full {store.filePath ===
+              path
+                ? 'active'
+                : ''}"
+              onclick={() => {
+                store.openPath(path);
+                (document.activeElement as HTMLElement)?.blur();
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-3.5 shrink-0 opacity-60"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                />
+              </svg>
+              <span class="truncate flex-1 text-sm">{fileName(path)}</span>
+              {#if store.filePath === path}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-3.5 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              {/if}
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
   <button
     class="btn btn-sm btn-primary shrink-0"
     onclick={() => (showAddDialog = true)}>+ Add</button

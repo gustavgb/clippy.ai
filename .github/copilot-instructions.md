@@ -9,12 +9,16 @@ In this project I will be creating a local-first bookmarking/research tool with 
 - Tailwind + DaisyUI
 - Integration with Gemini API to summarize websites
 
+## Dictionary
+
+- Workspace: A JSON file containing bookmarks and an ID counter
+
 ## Data Storage
 
 Data will be stored in a JSON file on the user's file system. It will have the following interface:
 
 ```ts
-interface Data {
+interface Workspace {
   idCounter: number;
   bookmarks: {
     id: number;
@@ -29,11 +33,26 @@ interface Data {
 
 ## Design
 
-The user interface must be very simple. At the top are three tabs: bookmarks and settings
+The user interface must be very simple.
+
+### Native menu
+
+The native menu contains the following menu items:
+
+- File
+  - New workspace (adds to settings.json)
+  - Open workspace (adds to settings.json)
+  - Save
+  - Save as
+  - Close workspace (removes from settings.json)
+  - Preferences
+  - Quit
+- Bookmarks
+  - Add bookmark
 
 ### Bookmarks page
 
-At the top there is a searchbar on the left and on the right is a button to add a new bookmark. Below is a list of existing bookmarks on the left and possibly the opened bookmark on the right.
+At the top there is a searchbar on the left and on the right is a button to add a new bookmark. There is a dropdown allowing the user to select between recently used workspaces. Below is a list of existing bookmarks on the left and possibly the opened bookmark on the right.
 
 **1. Adding a bookmark**
 
@@ -61,7 +80,10 @@ The settings page contains a text field to input a Gemini API token. The token i
 
 ## Keyboard shortcuts
 
-- `Ctrl+O` - Open JSON data file
+- `Ctrl+N` - Add bookmark
+- `Ctrl+F` - Focus searchbar
+- `Ctrl+Shift+N` - New workspace file
+- `Ctrl+O` - Open workspace file
 - `Ctrl+S` - Save
 - `Ctrl+Shift+S` - Save as
 - `Ctrl+Q` - Close (ask if unsaved changes)
@@ -72,6 +94,6 @@ The ID is automatically assigned from the incrementing counter: `idCounter` in t
 
 When a JSON data file is opened, it must be watched for file changes. If any changes are detected, reload the data file automatically. Only react to 'modify' or 'remove' events. Use the tauri fs watch function.
 
-The app will store settings, such as the last opened data store in a config file at `~/.config/clippy.ai/settings.json`. It must also be watched and reloaded when modify or remove events occur. If it is not present when the app starts, it must be created. When a data store file is opened, update the settings.json file accordingly.
+The app will store settings, such as the last opened workspaces in a config file at `~/.config/clippy.ai/settings.json`. It must also be watched and reloaded when modify or remove events occur. If it is not present when the app starts, it must be created. When a data store file is opened, update the settings.json file accordingly.
 
 Bookmarks can be edited any time they are open. Therefore an autosave feature must be implemented (1.5 seconds debounced), which will save the opened item.

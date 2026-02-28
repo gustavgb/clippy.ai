@@ -8,6 +8,7 @@ import {
 
 interface Settings {
   lastOpenedFile?: string;
+  recentWorkspaces?: string[];
   geminiApiKey?: string;
   geminiModel?: string;
   geminiPrompt?: string;
@@ -17,9 +18,20 @@ const DEFAULT_MODEL = "models/gemini-2.5-flash-lite";
 const DEFAULT_PROMPT =
   "Summarize the main content of the following webpage in 3-5 sentences.\n\nIMPORTANT: Detect the language of the webpage. If the webpage is written in Danish, you MUST write the entire summary in Danish. If it is written in English, write in English. For any other language, write in English.\n\nWebpage content:\n{content}\n\nRemember: if the webpage above is in Danish, your summary MUST be in Danish.";
 
+const MAX_RECENT = 10;
+
+function sortByFilename(paths: string[]): string[] {
+  return [...paths].sort((a, b) => {
+    const nameA = a.split("/").at(-1)!.toLowerCase();
+    const nameB = b.split("/").at(-1)!.toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+}
+
 class SettingsStore {
   private configPath = $state<string>("");
   lastOpenedFile = $state<string | undefined>(undefined);
+  recentWorkspaces = $state<string[]>([]);
   geminiApiKey = $state<string>("");
   geminiModel = $state<string>(DEFAULT_MODEL);
   geminiPrompt = $state<string>(DEFAULT_PROMPT);
@@ -36,6 +48,12 @@ class SettingsStore {
       const text = await readTextFile(configPath);
       const parsed = JSON.parse(text) as Settings;
       this.lastOpenedFile = parsed.lastOpenedFile;
+      if (parsed.recentWorkspaces && parsed.recentWorkspaces.length > 0) {
+        this.recentWorkspaces = sortByFilename(parsed.recentWorkspaces.slice(0, MAX_RECENT));
+      } else if (parsed.lastOpenedFile) {
+        // Migrate from old single-file format
+        this.recentWorkspaces = [parsed.lastOpenedFile];
+      }
       this.geminiApiKey = parsed.geminiApiKey ?? "";
       this.geminiModel = parsed.geminiModel ?? DEFAULT_MODEL;
       this.geminiPrompt = parsed.geminiPrompt ?? DEFAULT_PROMPT;
@@ -53,6 +71,7 @@ class SettingsStore {
       this.lastSaveAt = Date.now();
       const settings: Settings = {
         lastOpenedFile: this.lastOpenedFile,
+        recentWorkspaces: this.recentWorkspaces,
         geminiApiKey: this.geminiApiKey || undefined,
         geminiModel: this.geminiModel,
         geminiPrompt: this.geminiPrompt,
@@ -65,6 +84,9 @@ class SettingsStore {
 
   async setLastFile(path: string) {
     this.lastOpenedFile = path;
+    // Add to set, cap at MAX_RECENT, then sort alphabetically by filename
+    const updated = [path, ...this.recentWorkspaces.filter((p) => p !== path)].slice(0, MAX_RECENT);
+    this.recentWorkspaces = sortByFilename(updated);
     await this._write();
   }
 
@@ -105,6 +127,11 @@ class SettingsStore {
           const text = await readTextFile(configPath);
           const parsed = JSON.parse(text) as Settings;
           self.lastOpenedFile = parsed.lastOpenedFile;
+          if (parsed.recentWorkspaces && parsed.recentWorkspaces.length > 0) {
+            self.recentWorkspaces = sortByFilename(parsed.recentWorkspaces.slice(0, MAX_RECENT));
+          } else if (parsed.lastOpenedFile) {
+            self.recentWorkspaces = [parsed.lastOpenedFile];
+          }
           self.geminiApiKey = parsed.geminiApiKey ?? "";
           self.geminiModel = parsed.geminiModel ?? DEFAULT_MODEL;
           self.geminiPrompt = parsed.geminiPrompt ?? DEFAULT_PROMPT;
