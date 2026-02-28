@@ -7,6 +7,8 @@
   import BookmarksPage from "./lib/BookmarksPage.svelte";
   import SettingsPage from "./lib/SettingsPage.svelte";
   import { tabs } from "./lib/tabs.svelte";
+  import { bookmarks } from "./lib/bookmarks.svelte";
+  import AddBookmarkDialog from "./lib/AddBookmarkDialog.svelte";
 
   onMount(async () => {
     await settings.init();
@@ -25,6 +27,7 @@
       else if (id === "save") await store.save();
       else if (id === "save_as") await store.saveAs();
       else if (id === "preferences") tabs.setActiveTab("settings");
+      else if (id === "new_bookmark") bookmarks.showAddDialog();
       else if (id === "quit") invoke("close_app");
     });
     return () => {
@@ -58,5 +61,9 @@
     <SettingsPage />
   {/if}
 </div>
+
+{#if bookmarks.addDialogOpen}
+  <AddBookmarkDialog />
+{/if}
 
 <style></style>

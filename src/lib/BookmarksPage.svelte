@@ -2,17 +2,14 @@
   import { store } from "./store.svelte";
   import { settings } from "./settings.svelte";
   import BookmarkPanel from "./BookmarkPanel.svelte";
-  import AddBookmarkDialog from "./AddBookmarkDialog.svelte";
-  import type { Bookmark } from "./types";
   import { fuzzyScore } from "./utils";
+  import { bookmarks } from "./bookmarks.svelte";
 
   function fileName(path: string) {
     return path.split("/").at(-1) ?? path;
   }
 
   let search = $state("");
-  let activeBookmark = $state<Bookmark | null>(null);
-  let showAddDialog = $state(false);
 
   const filtered = $derived.by(() => {
     const q = search.trim();
@@ -32,23 +29,6 @@
       .sort((a, b) => b.score - a.score)
       .map((r) => r.b);
   });
-
-  async function handleAdd(url: string) {
-    showAddDialog = false;
-    if (!store.filePath) {
-      await store.saveAs();
-      if (!store.filePath) return;
-    }
-    const bookmark = store.addBookmark({
-      url,
-      title: "",
-      note: "",
-      tags: [],
-      summary: "",
-    });
-    activeBookmark = bookmark;
-    await store.save();
-  }
 </script>
 
 <!-- Toolbar -->
@@ -149,7 +129,7 @@
   {/if}
   <button
     class="btn btn-sm btn-primary shrink-0"
-    onclick={() => (showAddDialog = true)}>+ Add</button
+    onclick={bookmarks.showAddDialog}>+ Add</button
   >
 </div>
 
@@ -171,11 +151,11 @@
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
-        class="px-3 py-3 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-200 {activeBookmark?.id ===
-        b.id
+        class="px-3 py-3 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-200 {bookmarks
+          .activeBookmark?.id === b.id
           ? 'bg-base-200'
           : ''}"
-        onclick={() => (activeBookmark = b)}
+        onclick={() => (bookmarks.activeBookmark = b)}
       >
         <div class="flex items-baseline gap-1.5 mb-1 flex-wrap">
           <span class="text-xs text-base-content/50 font-mono shrink-0"
@@ -208,13 +188,13 @@
 
   <!-- Detail panel -->
   <div class="flex-1 overflow-hidden">
-    {#if activeBookmark}
-      {#key activeBookmark.id}
+    {#if bookmarks.activeBookmark}
+      {#key bookmarks.activeBookmark.id}
         <BookmarkPanel
           bookmark={store.data.bookmarks.find(
-            (b) => b.id === activeBookmark!.id,
-          ) ?? activeBookmark}
-          onclose={() => (activeBookmark = null)}
+            (b) => b.id === bookmarks.activeBookmark!.id,
+          ) ?? bookmarks.activeBookmark}
+          onclose={() => (bookmarks.activeBookmark = null)}
         />
       {/key}
     {:else}
@@ -226,12 +206,5 @@
     {/if}
   </div>
 </div>
-
-{#if showAddDialog}
-  <AddBookmarkDialog
-    onconfirm={handleAdd}
-    oncancel={() => (showAddDialog = false)}
-  />
-{/if}
 
 <style></style>

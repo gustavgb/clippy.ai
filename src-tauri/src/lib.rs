@@ -284,11 +284,13 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let new_i = MenuItem::with_id(app, "new", "New Data File", true, Some("CmdOrCtrl+N"))?;
+            // File menu
+            let new_i =
+                MenuItem::with_id(app, "new", "New workspace", true, Some("CmdOrCtrl+Shift+N"))?;
             let open_i = MenuItem::with_id(
                 app,
                 "open",
-                "Open Data File\u{2026}",
+                "Open workspace\u{2026}",
                 true,
                 Some("CmdOrCtrl+O"),
             )?;
@@ -315,7 +317,20 @@ pub fn run() {
                 ],
             )?;
 
-            let menu = Menu::with_items(app, &[&file_menu])?;
+            // Bookmarks menu
+            let bm_new_i = MenuItem::with_id(
+                app,
+                "new_bookmark",
+                "New bookmark",
+                true,
+                Some("CmdOrCtrl+N"),
+            )?;
+
+            let bm_menu = Submenu::with_items(app, "Bookmarks", true, &[&bm_new_i])?;
+
+            // App menu
+
+            let menu = Menu::with_items(app, &[&file_menu, &bm_menu])?;
             app.set_menu(menu)?;
 
             app.on_menu_event(|app, event| match event.id().as_ref() {

@@ -1,12 +1,6 @@
 <script lang="ts">
+  import { bookmarks } from "./bookmarks.svelte";
   import { store } from "./store.svelte";
-
-  interface Props {
-    onconfirm: (url: string) => void;
-    oncancel: () => void;
-  }
-
-  let { onconfirm, oncancel }: Props = $props();
 
   let url = $state("");
   let inputEl: HTMLInputElement;
@@ -17,14 +11,28 @@
       : null,
   );
 
-  function submit() {
+  async function submit() {
     const trimmed = url.trim();
     if (!trimmed || duplicate) return;
-    onconfirm(trimmed);
+
+    bookmarks.hideAddDialog();
+    if (!store.filePath) {
+      await store.saveAs();
+      if (!store.filePath) return;
+    }
+    const bookmark = store.addBookmark({
+      url: trimmed,
+      title: "",
+      note: "",
+      tags: [],
+      summary: "",
+    });
+    bookmarks.setActiveBookmark(bookmark);
+    await store.save();
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") oncancel();
+    if (e.key === "Escape") bookmarks.hideAddDialog();
     if (e.key === "Enter") submit();
   }
 
@@ -40,7 +48,7 @@
 <div
   class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm"
   onclick={(e) => {
-    if (e.target === e.currentTarget) oncancel();
+    if (e.target === e.currentTarget) bookmarks.hideAddDialog();
   }}
 >
   <div
@@ -74,7 +82,9 @@
     </div>
 
     <div class="flex justify-end gap-2">
-      <button class="btn btn-ghost" onclick={oncancel}>Cancel</button>
+      <button class="btn btn-ghost" onclick={() => bookmarks.hideAddDialog()}
+        >Cancel</button
+      >
       <button
         class="btn btn-primary"
         onclick={submit}

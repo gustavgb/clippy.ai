@@ -101,7 +101,16 @@
     if (store.filePath) store.save();
     onclose();
   }
+
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      onclose();
+    }
+  }
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <div class="flex flex-col h-full border-l border-base-300 overflow-hidden">
   <!-- Header -->
