@@ -40,7 +40,7 @@ class BookmarkStore {
   // ─── Persistence ───────────────────────────────────────────────────────────
 
   async persist(path: string, data: Data) {
-    if (!path || this.saving) return;
+    if (!path || this.saving || !this.dirty) return;
     try {
       this.saving = true;
       this.lastSaveAt = Date.now();
@@ -139,6 +139,9 @@ class BookmarkStore {
   updateBookmark(updated: Bookmark) {
     const idx = this.data.bookmarks.findIndex((b) => b.id === updated.id);
     if (idx === -1) return;
+    const { lastUpdated: _a, ...current } = this.data.bookmarks[idx];
+    const { lastUpdated: _b, ...incoming } = updated;
+    if (JSON.stringify(current) === JSON.stringify(incoming)) return;
     this.data.bookmarks[idx] = { ...updated, lastUpdated: new Date().toISOString() };
     this.dirty = true;
   }

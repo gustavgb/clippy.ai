@@ -4,6 +4,8 @@
   import { store } from "./store.svelte";
   import { settings } from "./settings.svelte";
   import { confirm } from "@tauri-apps/plugin-dialog";
+  import { bookmarks } from "./bookmarks.svelte";
+  import { formatRelativeTime } from "./utils";
 
   interface Props {
     bookmark: Bookmark;
@@ -103,7 +105,7 @@
   }
 
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
+    if (e.key === "Escape" && !bookmarks.addDialogOpen) {
       e.preventDefault();
       onclose();
     }
@@ -118,6 +120,9 @@
     class="flex items-center justify-between px-4 py-3 border-b border-base-300 shrink-0"
   >
     <span class="text-xs text-base-content/60 font-mono">#{bookmark.id}</span>
+    <span class="text-xs text-base-content/60"
+      >Last updated: {formatRelativeTime(bookmark.lastUpdated)}</span
+    >
   </div>
 
   <div class="flex-1 overflow-y-auto flex flex-col">
