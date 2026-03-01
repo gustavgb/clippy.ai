@@ -5,6 +5,8 @@
   import { fuzzyScore } from "./utils";
   import { bookmarks } from "./bookmarks.svelte";
 
+  let listEl = $state<HTMLDivElement | null>(null);
+
   function fileName(path: string) {
     return path.split("/").at(-1) ?? path;
   }
@@ -28,6 +30,13 @@
       .filter((r) => r.score > 0)
       .sort((a, b) => b.score - a.score)
       .map((r) => r.b);
+  });
+
+  $effect(() => {
+    filtered;
+    if (listEl) {
+      listEl.scrollTop = 0;
+    }
   });
 </script>
 
@@ -166,6 +175,7 @@
   <div
     class="flex flex-col overflow-y-auto border-r border-base-300"
     style="width: 300px; min-width: 220px;"
+    bind:this={listEl}
   >
     {#if filtered.length === 0 && store.filePath}
       <div class="py-12 px-4 text-center text-base-content/60 text-sm">
