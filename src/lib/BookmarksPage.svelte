@@ -2,8 +2,8 @@
   import { store } from "./store.svelte";
   import { settings } from "./settings.svelte";
   import BookmarkPanel from "./BookmarkPanel.svelte";
-  import { fuzzyScore } from "./utils";
   import { bookmarks } from "./bookmarks.svelte";
+  import Fuse from "fuse.js";
 
   let listEl = $state<HTMLDivElement | null>(null);
   let searchEl = $state<HTMLInputElement | null>(null);
@@ -17,20 +17,15 @@
   const filtered = $derived.by(() => {
     const q = search.trim();
     if (!q) return store.sortedBookmarks;
-    return store.sortedBookmarks
-      .map((b) => ({
-        b,
-        score: Math.max(
-          fuzzyScore(q, b.title) * 3,
-          fuzzyScore(q, b.url) * 2,
-          ...b.tags.map((t) => fuzzyScore(q, t) * 2.5),
-          fuzzyScore(q, b.note),
-          fuzzyScore(q, String(b.id)),
-        ),
-      }))
-      .filter((r) => r.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((r) => r.b);
+
+    const fuse = new Fuse(store.sortedBookmarks, {
+      keys: ["title", "url", "id", "note", "summary", "tags", "lastUpdated"],
+      ignoreLocation: true,
+      findAllMatches: true,
+      threshold: 0.8,
+    });
+
+    return fuse.search(q).map(({ item }) => item);
   });
 
   $effect(() => {

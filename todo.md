@@ -12,8 +12,8 @@ Bugs/Improvements:
 - [ ] Implement [fuse.js](https://www.fusejs.io/) for fuzzy search
 - [x] Scroll to top when searching
 - [x] Show tooltip of truncated titles
-- [ ] Line break long titles
-- [ ] Ctrl+F search shortcut
-- [ ] Esc in search bar to clear search
+- [ ] ~~Line break long titles~~
+- [x] Ctrl+F search shortcut
+- [x] Esc in search bar to clear search
 - [x] *Bug*: Esc in add dialog closes open bookmark
 - [ ] Clear AI summary
