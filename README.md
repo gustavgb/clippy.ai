@@ -4,6 +4,8 @@
 
 A private, git-friendly, local-first bookmarking and research tool with optional AI power-ups 🚀
 
+![Screenshot](./screenshot.png)
+
 ## Features
 
 - Bookmark websites and assign a fixed ID for reference in hand-written notes.
