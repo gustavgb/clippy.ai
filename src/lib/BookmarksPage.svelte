@@ -38,6 +38,14 @@
       listEl.scrollTop = 0;
     }
   });
+
+  const onSearchKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      search = "";
+    }
+  };
 </script>
 
 <!-- Toolbar -->
@@ -47,6 +55,7 @@
   <input
     type="search"
     bind:value={search}
+    onkeydown={onSearchKeyDown}
     placeholder="Search bookmarks…"
     class="input input-sm flex-1 min-w-0"
   />
