@@ -207,8 +207,9 @@
           <span class="text-xs text-base-content/50 font-mono shrink-0"
             >#{b.id}</span
           >
-          <span class="text-sm font-medium flex-1 min-w-0 truncate"
-            >{b.title || "(untitled)"}</span
+          <span
+            class="text-sm font-medium flex-1 min-w-0 truncate"
+            title={b.title || "(untitled)"}>{b.title || "(untitled)"}</span
           >
         </div>
         {#if b.tags.length > 0}

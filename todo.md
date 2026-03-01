@@ -10,8 +10,8 @@ Bugs/Improvements:
 
 - [x] Show last updated on bookmark
 - [ ] Implement [fuse.js](https://www.fusejs.io/) for fuzzy search
-- [ ] Scroll to top when searching
-- [ ] Show tooltip of truncated titles
+- [x] Scroll to top when searching
+- [x] Show tooltip of truncated titles
 - [ ] Line break long titles
 - [ ] Ctrl+F search shortcut
 - [ ] Esc in search bar to clear search
