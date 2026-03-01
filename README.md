@@ -11,6 +11,7 @@ A private, git-friendly, local-first bookmarking and research tool with optional
 - Quickly find bookmarks using fuzzy search.
 - Data is stored in a JSON file - easily checked into git.
 - Manage multiple workspace files for separation between areas of life.
+- Quickly pull and push with built in git commands.
 
 ## Development
 
