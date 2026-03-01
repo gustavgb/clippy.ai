@@ -3,6 +3,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { listen } from "@tauri-apps/api/event";
   import { message } from "@tauri-apps/plugin-dialog";
+  import { getVersion } from "@tauri-apps/api/app";
   import { store } from "./lib/store.svelte";
   import { settings } from "./lib/settings.svelte";
   import BookmarksPage from "./lib/BookmarksPage.svelte";
@@ -34,6 +35,14 @@
       } else if (id === "preferences") tabs.setActiveTab("settings");
       else if (id === "new_bookmark") {
         if (store.filePath) bookmarks.showAddDialog();
+      } else if (id === "source_code") {
+        invoke("open_url", { url: "https://github.com/gustavgb/clippy.ai" });
+      } else if (id === "about") {
+        const version = await getVersion();
+        await message(`clippy.ai v${version}`, {
+          title: "About clippy.ai",
+          kind: "info",
+        });
       } else if (id === "quit") invoke("close_app");
       else if (id === "git_pull") {
         if (!store.filePath) {

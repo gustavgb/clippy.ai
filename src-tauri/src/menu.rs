@@ -15,8 +15,7 @@ pub fn build_menu(app: &mut tauri::App) -> tauri::Result<()> {
         Some("CmdOrCtrl+Shift+S"),
     )?;
     let sep = PredefinedMenuItem::separator(app)?;
-    let prefs_i =
-        MenuItem::with_id(app, "preferences", "Preferences", true, Some("CmdOrCtrl+,"))?;
+    let prefs_i = MenuItem::with_id(app, "preferences", "Preferences", true, Some("CmdOrCtrl+,"))?;
     let sep2 = PredefinedMenuItem::separator(app)?;
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, Some("CmdOrCtrl+Q"))?;
 
@@ -42,7 +41,12 @@ pub fn build_menu(app: &mut tauri::App) -> tauri::Result<()> {
     let git_push_i = MenuItem::with_id(app, "git_push", "Push", true, None::<&str>)?;
     let git_menu = Submenu::with_items(app, "Git", true, &[&git_pull_i, &git_push_i])?;
 
-    let menu = Menu::with_items(app, &[&file_menu, &bm_menu, &git_menu])?;
+    // Help menu
+    let help_source_i = MenuItem::with_id(app, "source_code", "Source Code", true, None::<&str>)?;
+    let help_about_i = MenuItem::with_id(app, "about", "About", true, None::<&str>)?;
+    let help_menu = Submenu::with_items(app, "Help", true, &[&help_source_i, &help_about_i])?;
+
+    let menu = Menu::with_items(app, &[&file_menu, &bm_menu, &git_menu, &help_menu])?;
     app.set_menu(menu)?;
 
     app.on_menu_event(|app, event| {
