@@ -6,6 +6,7 @@
   import { bookmarks } from "./bookmarks.svelte";
 
   let listEl = $state<HTMLDivElement | null>(null);
+  let searchEl = $state<HTMLInputElement | null>(null);
 
   function fileName(path: string) {
     return path.split("/").at(-1) ?? path;
@@ -46,7 +47,16 @@
       search = "";
     }
   };
+
+  const onkeydown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === "f") {
+      e.preventDefault();
+      searchEl?.focus();
+    }
+  };
 </script>
+
+<svelte:window {onkeydown} />
 
 <!-- Toolbar -->
 <div
@@ -58,6 +68,7 @@
     onkeydown={onSearchKeyDown}
     placeholder="Search bookmarks…"
     class="input input-sm flex-1 min-w-0"
+    bind:this={searchEl}
   />
   {#if settings.recentWorkspaces.length > 0}
     <div class="dropdown dropdown-end shrink-0">
