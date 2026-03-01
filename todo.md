@@ -9,11 +9,11 @@ Features:
 Bugs/Improvements:
 
 - [x] Show last updated on bookmark
-- [ ] Implement [fuse.js](https://www.fusejs.io/) for fuzzy search
+- [x] Implement [fuse.js](https://www.fusejs.io/) for fuzzy search
 - [x] Scroll to top when searching
 - [x] Show tooltip of truncated titles
 - [ ] ~~Line break long titles~~
 - [x] Ctrl+F search shortcut
 - [x] Esc in search bar to clear search
 - [x] *Bug*: Esc in add dialog closes open bookmark
-- [ ] Clear AI summary
+- [x] Clear AI summary

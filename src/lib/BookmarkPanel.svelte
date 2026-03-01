@@ -7,6 +7,8 @@
   import { bookmarks } from "./bookmarks.svelte";
   import { formatRelativeTime } from "./utils";
 
+  let scrollEl = $state<HTMLDivElement | null>(null);
+
   interface Props {
     bookmark: Bookmark;
     onclose: () => void;
@@ -85,6 +87,12 @@
     }
   }
 
+  function clearSummary() {
+    summary = "";
+    save();
+    if (scrollEl) scrollEl.scrollTop = 0;
+  }
+
   function openUrl() {
     invoke("open_url", { url: bookmark.url }).catch(() => {
       window.open(bookmark.url, "_blank");
@@ -125,7 +133,7 @@
     >
   </div>
 
-  <div class="flex-1 overflow-y-auto flex flex-col">
+  <div class="flex-1 overflow-y-auto flex flex-col" bind:this={scrollEl}>
     <!-- Title -->
     <div class="flex flex-col gap-1 px-4 py-3 border-b border-base-300">
       <label
@@ -206,9 +214,19 @@
             {summary}
           </p>
         {/if}
-        <button class="btn btn-xs btn-outline w-fit" onclick={fetchSummary}>
-          {summary ? "Re-summarize" : "Summarize"}
-        </button>
+        <div class="flex flex-row items-center gap-2">
+          <button class="btn btn-xs btn-outline w-fit" onclick={fetchSummary}>
+            {summary ? "Re-summarize" : "Summarize"}
+          </button>
+          {#if summary}
+            <button
+              class="btn btn-error btn-xs btn-outline w-fit"
+              onclick={clearSummary}
+            >
+              Clear summary
+            </button>
+          {/if}
+        </div>
       {/if}
     </div>
 

@@ -29,7 +29,7 @@
   });
 
   $effect(() => {
-    filtered;
+    search;
     if (listEl) {
       listEl.scrollTop = 0;
     }
