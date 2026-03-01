@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
   import { listen } from "@tauri-apps/api/event";
+  import { message } from "@tauri-apps/plugin-dialog";
   import { store } from "./lib/store.svelte";
   import { settings } from "./lib/settings.svelte";
   import BookmarksPage from "./lib/BookmarksPage.svelte";
@@ -34,6 +35,42 @@
       else if (id === "new_bookmark") {
         if (store.filePath) bookmarks.showAddDialog();
       } else if (id === "quit") invoke("close_app");
+      else if (id === "git_pull") {
+        if (!store.filePath) {
+          await message("No workspace is open.", {
+            title: "Git Pull",
+            kind: "error",
+          });
+          return;
+        }
+        try {
+          const result = await invoke<string>("git_pull", {
+            filePath: store.filePath,
+          });
+          await message(result || "Already up to date.", {
+            title: "Git Pull",
+            kind: "info",
+          });
+        } catch (e) {
+          await message(String(e), { title: "Git Pull Failed", kind: "error" });
+        }
+      } else if (id === "git_push") {
+        if (!store.filePath) {
+          await message("No workspace is open.", {
+            title: "Git Push",
+            kind: "error",
+          });
+          return;
+        }
+        try {
+          const result = await invoke<string>("git_push", {
+            filePath: store.filePath,
+          });
+          await message(result, { title: "Git Push", kind: "info" });
+        } catch (e) {
+          await message(String(e), { title: "Git Push Failed", kind: "error" });
+        }
+      }
     });
     return () => {
       unlisten.then((fn) => fn());
