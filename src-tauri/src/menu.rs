@@ -5,14 +5,12 @@ use tauri::Emitter;
 /// emitter that forwards every action to the frontend as a `menu-action` event.
 pub fn build_menu(app: &mut tauri::App) -> tauri::Result<()> {
     // File menu
-    let new_i = MenuItem::with_id(app, "new", "New workspace", true, Some("CmdOrCtrl+Shift+N"))?;
-    let open_i = MenuItem::with_id(app, "open", "Open workspace", true, Some("CmdOrCtrl+O"))?;
-    let save_as_i = MenuItem::with_id(
+    let open_i = MenuItem::with_id(
         app,
-        "save_as",
-        "Save As\u{2026}",
+        "open",
+        "Open Folder as Workspace\u{2026}",
         true,
-        Some("CmdOrCtrl+Shift+S"),
+        Some("CmdOrCtrl+O"),
     )?;
     let sep = PredefinedMenuItem::separator(app)?;
     let prefs_i = MenuItem::with_id(app, "preferences", "Preferences", true, Some("CmdOrCtrl+,"))?;
@@ -23,7 +21,7 @@ pub fn build_menu(app: &mut tauri::App) -> tauri::Result<()> {
         app,
         "File",
         true,
-        &[&new_i, &open_i, &save_as_i, &sep, &prefs_i, &sep2, &quit_i],
+        &[&open_i, &sep, &prefs_i, &sep2, &quit_i],
     )?;
 
     // Bookmarks menu

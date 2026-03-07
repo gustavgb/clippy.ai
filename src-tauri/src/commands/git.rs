@@ -69,13 +69,16 @@ fn git_run(args: &[&str], dir: &std::path::Path) -> Result<String, String> {
     }
 }
 
-/// Stages the workspace file, commits with a timestamped message, and pushes.
+/// Stages all changes in the workspace directory, commits with a timestamped
+/// message, and pushes to the remote.
 #[tauri::command]
 pub fn git_push(file_path: String) -> Result<String, String> {
-    let path = std::path::Path::new(&file_path);
-    let dir = path
-        .parent()
-        .ok_or_else(|| "Invalid workspace file path".to_string())?;
+    // file_path is the workspace *directory* (e.g. my-bookmarks.clippyai)
+    let dir = std::path::Path::new(&file_path);
+
+    if !dir.is_dir() {
+        return Err(format!("'{}' is not a directory", file_path));
+    }
 
     // Step 1: Confirm it's a git repo and there are pending changes
     let status_out = git_run(&["status", "--porcelain"], dir)
@@ -85,8 +88,8 @@ pub fn git_push(file_path: String) -> Result<String, String> {
         return Err("No changes to commit.".to_string());
     }
 
-    // Step 2: git add <workspace file>
-    git_run(&["add", &file_path], dir).map_err(|e| format!("git add failed:\n{}", e))?;
+    // Step 2: git add everything inside the workspace directory
+    git_run(&["add", "."], dir).map_err(|e| format!("git add failed:\n{}", e))?;
 
     // Step 3: git commit
     let commit_msg = format!("Backup bookmarks {}", format_utc_now());
@@ -102,13 +105,15 @@ pub fn git_push(file_path: String) -> Result<String, String> {
     ))
 }
 
-/// Runs `git pull --ff` in the workspace file's directory.
+/// Runs `git pull --ff` in the workspace directory.
 #[tauri::command]
 pub fn git_pull(file_path: String) -> Result<String, String> {
-    let path = std::path::Path::new(&file_path);
-    let dir = path
-        .parent()
-        .ok_or_else(|| "Invalid workspace file path".to_string())?;
+    // file_path is the workspace *directory*
+    let dir = std::path::Path::new(&file_path);
+
+    if !dir.is_dir() {
+        return Err(format!("'{}' is not a directory", file_path));
+    }
 
     // Verify this is a git repository
     git_run(&["status"], dir).map_err(|e| format!("Not a git repository:\n{}", e))?;

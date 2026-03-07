@@ -23,6 +23,7 @@ pub fn run() {
             commands::window::close_app,
             commands::window::get_settings_path,
             commands::window::open_url,
+            commands::window::open_path,
             commands::web::fetch_page_title,
             commands::web::fetch_ai_summary,
             commands::web::list_gemini_models,

@@ -1,9 +1,7 @@
 {
   "identifier": "default",
   "description": "Default capability for clippy.ai",
-  "windows": [
-    "main"
-  ],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "dialog:allow-open",
@@ -67,6 +65,28 @@
       ]
     },
     "fs:allow-unwatch",
+    {
+      "identifier": "fs:allow-stat",
+      "allow": [
+        {
+          "path": "$HOME/**"
+        },
+        {
+          "path": "/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
+        {
+          "path": "$HOME/**"
+        },
+        {
+          "path": "/**"
+        }
+      ]
+    },
     "fs:default",
     "fs:scope-config-recursive",
     {
