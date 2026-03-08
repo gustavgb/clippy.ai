@@ -9,8 +9,7 @@
     import BookmarksPage from "./lib/BookmarksPage.svelte";
     import SettingsPage from "./lib/SettingsPage.svelte";
     import WelcomePage from "./lib/WelcomePage.svelte";
-    import { tabs } from "./lib/tabs.svelte";
-    import { bookmarks } from "./lib/bookmarks.svelte";
+    import { ui } from "./lib/ui.svelte";
     import AddBookmarkDialog from "./lib/AddBookmarkDialog.svelte";
 
     let ready = $state(false);
@@ -31,9 +30,9 @@
             "menu-action",
             async ({ payload: id }) => {
                 if (id === "open") await store.openFolder();
-                else if (id === "preferences") tabs.setActiveTab("settings");
+                else if (id === "preferences") ui.setActiveTab("settings");
                 else if (id === "new_bookmark") {
-                    if (store.filePath) bookmarks.showAddDialog();
+                    if (store.dirPath) ui.showAddDialog();
                 } else if (id === "source_code") {
                     invoke("open_url", {
                         url: "https://github.com/gustavgb/clippy.ai",
@@ -105,18 +104,18 @@
                 class="loading loading-spinner loading-md text-base-content/30"
             ></span>
         </div>
-    {:else if tabs.activeTab === "bookmarks"}
-        {#if store.filePath}
+    {:else if ui.activeTab === "bookmarks"}
+        {#if store.dirPath}
             <BookmarksPage />
         {:else}
             <WelcomePage />
         {/if}
-    {:else if tabs.activeTab === "settings"}
+    {:else if ui.activeTab === "settings"}
         <SettingsPage />
     {/if}
 </div>
 
-{#if bookmarks.addDialogOpen}
+{#if ui.addDialogOpen}
     <AddBookmarkDialog />
 {/if}
 

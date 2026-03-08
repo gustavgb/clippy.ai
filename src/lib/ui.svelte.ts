@@ -1,0 +1,19 @@
+import { Bookmark } from "./types";
+
+export type Tab = "bookmarks" | "settings";
+
+class UIStore {
+  activeBookmark = $state<Bookmark | null>(null);
+  addDialogOpen = $state(false);
+  activeTab = $state<Tab>("bookmarks");
+
+  setActiveTab = (tab: Tab) => {
+    console.log("Set tab: " + tab);
+    this.activeTab = tab;
+  };
+
+  showAddDialog = () => (this.addDialogOpen = true);
+  hideAddDialog = () => (this.addDialogOpen = false);
+}
+
+export const ui = new UIStore();

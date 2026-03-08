@@ -2,7 +2,7 @@
     import { store } from "./store.svelte";
     import { settings } from "./settings.svelte";
     import BookmarkPanel from "./BookmarkPanel.svelte";
-    import { bookmarks } from "./bookmarks.svelte";
+    import { ui } from "./ui.svelte";
     import Fuse from "fuse.js";
 
     function dirName(path: string) {
@@ -21,11 +21,18 @@
 
     let search = $state("");
 
+    const sortedBookmarks = $derived(
+        [...store.bookmarkIds]
+            .sort((a, b) => b - a)
+            .map((id) => store.bookmarks.get(id))
+            .filter((b) => !!b),
+    );
+
     const filtered = $derived.by(() => {
         const q = search.trim();
-        if (!q) return store.sortedBookmarks;
+        if (!q) return sortedBookmarks;
 
-        const fuse = new Fuse(store.sortedBookmarks, {
+        const fuse = new Fuse(sortedBookmarks, {
             keys: [
                 "title",
                 "url",
@@ -152,7 +159,7 @@
                                 <span class="truncate flex-1 text-sm"
                                     >{fileName(path)}</span
                                 >
-                                {#if store.filePath === path}
+                                {#if store.dirPath === path}
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         class="size-3.5 shrink-0"
@@ -172,7 +179,7 @@
                                 title="Remove from recents"
                                 onclick={(e) => {
                                     e.stopPropagation();
-                                    if (store.filePath === path) store.close();
+                                    if (store.dirPath === path) store.close();
                                     settings.removeRecentWorkspace(path);
                                 }}
                             >
@@ -196,9 +203,8 @@
             </ul>
         </div>
     {/if}
-    <button
-        class="btn btn-sm btn-primary shrink-0"
-        onclick={bookmarks.showAddDialog}>+ Add</button
+    <button class="btn btn-sm btn-primary shrink-0" onclick={ui.showAddDialog}
+        >+ Add</button
     >
 </div>
 
@@ -210,7 +216,7 @@
         style="width: 300px; min-width: 220px;"
         bind:this={listEl}
     >
-        {#if filtered.length === 0 && store.filePath}
+        {#if filtered.length === 0 && store.dirPath}
             <div class="py-12 px-4 text-center text-base-content/60 text-sm">
                 {search
                     ? "No results."
@@ -221,11 +227,11 @@
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
-                class="px-3 py-3 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-200 {bookmarks
+                class="px-3 py-3 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-200 {ui
                     .activeBookmark?.id === b.id
                     ? 'bg-base-200'
                     : ''}"
-                onclick={() => (bookmarks.activeBookmark = b)}
+                onclick={() => (ui.activeBookmark = b)}
             >
                 <div class="flex items-baseline gap-1.5 mb-1 flex-wrap">
                     <span
@@ -258,13 +264,12 @@
 
     <!-- Detail panel -->
     <div class="flex-1 overflow-hidden">
-        {#if bookmarks.activeBookmark}
-            {#key bookmarks.activeBookmark.id}
+        {#if ui.activeBookmark}
+            {#key ui.activeBookmark.id}
                 <BookmarkPanel
-                    bookmark={store.data.bookmarks.find(
-                        (b) => b.id === bookmarks.activeBookmark!.id,
-                    ) ?? bookmarks.activeBookmark}
-                    onclose={() => (bookmarks.activeBookmark = null)}
+                    bookmark={store.bookmarks.get(ui.activeBookmark!.id) ??
+                        ui.activeBookmark}
+                    onclose={() => (ui.activeBookmark = null)}
                 />
             {/key}
         {:else}

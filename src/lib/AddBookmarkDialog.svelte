@@ -1,43 +1,48 @@
 <script lang="ts">
-    import { bookmarks } from "./bookmarks.svelte";
+    import { ui } from "./ui.svelte";
     import { store } from "./store.svelte";
+    import { invoke } from "@tauri-apps/api/core";
 
     let url = $state("");
     let inputEl: HTMLInputElement;
+    let saving = $state(false);
 
     const duplicate = $derived(
         url.trim()
-            ? (store.bookmarkList.find((b) => b.url === url.trim()) ?? null)
+            ? (store.bookmarks.values().find((b) => b.url === url.trim()) ??
+                  null)
             : null,
     );
 
     async function submit() {
+        saving = true;
         const trimmed = url.trim();
         if (!trimmed || duplicate) return;
 
-        bookmarks.hideAddDialog();
         if (!store.dirPath) {
             await store.openFolder();
             if (!store.dirPath) return;
         }
+
+        const title = await invoke<string>("fetch_page_title", {
+            url: trimmed,
+        });
+
         const bookmark = store.addBookmark({
             url: trimmed,
-            title: "",
+            title,
             tags: [],
             sections: [],
+            mtime: Date.now(),
         });
-        bookmarks.activeBookmark = bookmark;
-        // Persist the new bookmark file and the updated index (idCounter) in
-        // parallel. persistBookmark only writes the .md file; writeIndex writes
-        // index.json separately so the idCounter increment is not lost.
-        await Promise.all([
-            store.persistBookmark(bookmark),
-            store.writeIndex(),
-        ]);
+        ui.activeBookmark = bookmark;
+
+        ui.hideAddDialog();
+        saving = false;
     }
 
     function handleKeydown(e: KeyboardEvent) {
-        if (e.key === "Escape") bookmarks.hideAddDialog();
+        if (e.key === "Escape") ui.hideAddDialog();
         if (e.key === "Enter") submit();
     }
 
@@ -53,7 +58,7 @@
 <div
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm"
     onclick={(e) => {
-        if (e.target === e.currentTarget) bookmarks.hideAddDialog();
+        if (e.target === e.currentTarget) ui.hideAddDialog();
     }}
 >
     <div
@@ -87,14 +92,14 @@
         </div>
 
         <div class="flex justify-end gap-2">
-            <button
-                class="btn btn-ghost"
-                onclick={() => bookmarks.hideAddDialog()}>Cancel</button
+            <button class="btn btn-ghost" onclick={() => ui.hideAddDialog()}
+                >Cancel</button
             >
             <button
                 class="btn btn-primary"
                 onclick={submit}
-                disabled={!url.trim() || !!duplicate}>Add</button
+                disabled={!url.trim() || !!duplicate || saving}
+                >{saving ? "Saving..." : "Add"}</button
             >
         </div>
     </div>
