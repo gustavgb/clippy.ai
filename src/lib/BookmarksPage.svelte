@@ -25,11 +25,8 @@
             .filter((b) => !!b),
     );
 
-    const filtered = $derived.by(() => {
-        const q = search.trim();
-        if (!q) return sortedBookmarks;
-
-        const fuse = new Fuse(sortedBookmarks, {
+    const fuse = $derived(
+        new Fuse(sortedBookmarks, {
             keys: [
                 "title",
                 "url",
@@ -41,7 +38,12 @@
             ignoreLocation: true,
             findAllMatches: true,
             threshold: 0.8,
-        });
+        }),
+    );
+
+    const filtered = $derived.by(() => {
+        const q = search.trim();
+        if (!q) return sortedBookmarks;
 
         return fuse.search(q).map(({ item }) => item);
     });
