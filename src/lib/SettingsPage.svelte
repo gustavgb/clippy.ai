@@ -5,7 +5,6 @@
 
     let keyInput = $state(settings.geminiApiKey);
     let modelInput = $state(settings.geminiModel);
-    let promptInput = $state(settings.geminiPrompt);
     let saved = $state(false);
     let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -16,7 +15,6 @@
     async function handleSave() {
         await settings.setGeminiApiKey(keyInput);
         await settings.setGeminiModel(modelInput);
-        await settings.setGeminiPrompt(promptInput);
         saved = true;
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => (saved = false), 2000);
@@ -36,14 +34,6 @@
         } finally {
             listingModels = false;
         }
-    }
-
-    function resetPrompt() {
-        promptInput = settings.geminiPrompt;
-        // Reset to the store default by importing the constant isn't possible directly,
-        // so we use the known default value:
-        promptInput =
-            "Summarize the main content of the following webpage in 3-5 sentences.\n\nIMPORTANT: Detect the language of the webpage. If the webpage is written in Danish, you MUST write the entire summary in Danish. If it is written in English, write in English. For any other language, write in English.\n\nWebpage content:\n{content}\n\nRemember: if the webpage above is in Danish, your summary MUST be in Danish.";
     }
 
     function onKeydown(e: KeyboardEvent) {
@@ -167,30 +157,6 @@
             </ul>
         </div>
     {/if}
-
-    <!-- Prompt -->
-    <div class="form-control mb-4">
-        <div class="flex items-center justify-between mb-1">
-            <label class="label-text font-medium" for="gemini-prompt"
-                >Summary Prompt</label
-            >
-            <button class="btn btn-ghost btn-xs" onclick={resetPrompt}
-                >Reset to default</button
-            >
-        </div>
-        <textarea
-            id="gemini-prompt"
-            class="textarea textarea-bordered w-full font-mono text-sm min-h-32"
-            bind:value={promptInput}
-        ></textarea>
-        <div class="label">
-            <span class="label-text-alt text-base-content/60"
-                >Use <code class="font-mono bg-base-300 px-1 rounded"
-                    >{"{content}"}</code
-                > as the placeholder for the page text.</span
-            >
-        </div>
-    </div>
 
     <div class="flex items-center gap-3">
         <button class="btn btn-primary" onclick={handleSave}>Save</button>

@@ -11,12 +11,9 @@ interface Settings {
   recentWorkspaces?: string[];
   geminiApiKey?: string;
   geminiModel?: string;
-  geminiPrompt?: string;
 }
 
 const DEFAULT_MODEL = "models/gemini-2.5-flash-lite";
-const DEFAULT_PROMPT =
-  "Summarize the main content of the following webpage in 3-5 sentences.\n\nWebpage content:\n{content}";
 
 const MAX_RECENT = 10;
 
@@ -34,7 +31,6 @@ class SettingsStore {
   recentWorkspaces = $state<string[]>([]);
   geminiApiKey = $state<string>("");
   geminiModel = $state<string>(DEFAULT_MODEL);
-  geminiPrompt = $state<string>(DEFAULT_PROMPT);
 
   private unwatchFn: (() => void) | null = null;
   private lastSaveAt = 0;
@@ -49,14 +45,15 @@ class SettingsStore {
       const parsed = JSON.parse(text) as Settings;
       this.lastOpenedFile = parsed.lastOpenedFile;
       if (parsed.recentWorkspaces && parsed.recentWorkspaces.length > 0) {
-        this.recentWorkspaces = sortByFilename(parsed.recentWorkspaces.slice(0, MAX_RECENT));
+        this.recentWorkspaces = sortByFilename(
+          parsed.recentWorkspaces.slice(0, MAX_RECENT),
+        );
       } else if (parsed.lastOpenedFile) {
         // Migrate from old single-file format
         this.recentWorkspaces = [parsed.lastOpenedFile];
       }
       this.geminiApiKey = parsed.geminiApiKey ?? "";
       this.geminiModel = parsed.geminiModel ?? DEFAULT_MODEL;
-      this.geminiPrompt = parsed.geminiPrompt ?? DEFAULT_PROMPT;
     } catch {
       // File doesn't exist yet — write defaults
       await this._write();
@@ -74,7 +71,6 @@ class SettingsStore {
         recentWorkspaces: this.recentWorkspaces,
         geminiApiKey: this.geminiApiKey || undefined,
         geminiModel: this.geminiModel,
-        geminiPrompt: this.geminiPrompt,
       };
       await writeTextFile(this.configPath, JSON.stringify(settings, null, 2));
     } catch {
@@ -86,7 +82,10 @@ class SettingsStore {
     if (!path) return;
     this.lastOpenedFile = path;
     // Add to set, cap at MAX_RECENT, then sort alphabetically by filename
-    const updated = [path, ...this.recentWorkspaces.filter((p) => p !== path)].slice(0, MAX_RECENT);
+    const updated = [
+      path,
+      ...this.recentWorkspaces.filter((p) => p !== path),
+    ].slice(0, MAX_RECENT);
     this.recentWorkspaces = sortByFilename(updated);
     await this._write();
   }
@@ -106,11 +105,6 @@ class SettingsStore {
 
   async setGeminiModel(model: string) {
     this.geminiModel = model;
-    await this._write();
-  }
-
-  async setGeminiPrompt(prompt: string) {
-    this.geminiPrompt = prompt;
     await this._write();
   }
 
@@ -137,18 +131,19 @@ class SettingsStore {
           const parsed = JSON.parse(text) as Settings;
           self.lastOpenedFile = parsed.lastOpenedFile;
           if (parsed.recentWorkspaces && parsed.recentWorkspaces.length > 0) {
-            self.recentWorkspaces = sortByFilename(parsed.recentWorkspaces.slice(0, MAX_RECENT));
+            self.recentWorkspaces = sortByFilename(
+              parsed.recentWorkspaces.slice(0, MAX_RECENT),
+            );
           } else if (parsed.lastOpenedFile) {
             self.recentWorkspaces = [parsed.lastOpenedFile];
           }
           self.geminiApiKey = parsed.geminiApiKey ?? "";
           self.geminiModel = parsed.geminiModel ?? DEFAULT_MODEL;
-          self.geminiPrompt = parsed.geminiPrompt ?? DEFAULT_PROMPT;
         } catch {
           // ignore
         }
       },
-      { delayMs: 200 }
+      { delayMs: 200 },
     )
       .then((fn) => {
         if (cancelled) {

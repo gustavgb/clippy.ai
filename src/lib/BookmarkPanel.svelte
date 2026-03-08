@@ -11,8 +11,13 @@
         quickPrompts,
     } from "./ai";
     import { settings } from "./settings.svelte";
+    import { tick } from "svelte";
 
     let scrollEl = $state<HTMLDivElement | null>(null);
+
+    function isNote(heading: string) {
+        return /note/i.test(heading);
+    }
 
     interface Props {
         bookmarkId: number;
@@ -22,23 +27,18 @@
     let { bookmarkId, onclose }: Props = $props();
 
     const bookmark = $derived(store.bookmarks.get(bookmarkId));
+    const sections = $derived(bookmark?.sections);
+    const tags = $derived(bookmark?.tags);
+    const note = $derived(sections?.find((s) => isNote(s.heading)));
+
     // svelte-ignore state_referenced_locally
     let title = $state(bookmark?.title);
     // svelte-ignore state_referenced_locally
     let tagsInput = $state(bookmark?.tags.join(", "));
-    let fetchingTitle = $state(false);
     let lastSeenMtime = $state(0);
-    const sections = $derived(bookmark?.sections);
-    const tags = $derived(bookmark?.tags);
     let question = $state("");
     let fetchingAnswer = $state(false);
     let runningQuickPrompts = $state<string[]>([]);
-
-    function isNote(heading: string) {
-        return /note/i.test(heading);
-    }
-
-    const note = $derived(sections?.find((s) => isNote(s.heading)));
 
     // Sync local fields when the file watcher reloads bookmarks from disk.
     $effect(() => {
@@ -221,7 +221,9 @@
 
         <!-- Note -->
         {#if note}
-            <div class="flex flex-col gap-1 px-4 py-3 border-b border-base-300">
+            <div
+                class="flex flex-col gap-1 px-4 py-3 mb-7 border-b border-base-300"
+            >
                 <div class="flex items-center justify-between">
                     <span
                         class="text-xs uppercase tracking-widest text-base-content/50 font-mono"
