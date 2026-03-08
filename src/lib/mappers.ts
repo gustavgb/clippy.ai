@@ -1,3 +1,4 @@
+import { type FileInfo } from "@tauri-apps/plugin-fs";
 import { Bookmark, BookmarkSection } from "./types";
 
 // Serialises a Bookmark to its markdown file content.
@@ -25,7 +26,7 @@ export function bookmarkToMarkdown(bookmark: Bookmark): string {
 }
 
 // Parses a markdown bookmark file back into a Bookmark object.
-export function markdownToBookmark(content: string): Bookmark {
+export function markdownToBookmark(content: string, info: FileInfo): Bookmark {
   // Split front-matter from body
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
   if (!fmMatch) {
@@ -48,7 +49,7 @@ export function markdownToBookmark(content: string): Bookmark {
 
   // Split the body on heading lines — parts alternates:
   // [preHeading, heading, body, heading, body, ...]
-  const sectionRe = /^(#{1,6} .+)$/m;
+  const sectionRe = /^(# .+)$/m;
   const parts = body.split(sectionRe);
 
   const sections: BookmarkSection[] = [];
@@ -67,11 +68,15 @@ export function markdownToBookmark(content: string): Bookmark {
         .filter(Boolean)
     : [];
 
+  const mt = info.mtime?.getTime();
+  const ct = info.birthtime?.getTime();
+
   return {
     id: parseInt(meta["id"] ?? "0", 10),
     url: meta["url"] ?? "",
     title: meta["title"] ?? "",
-    mtime: 0,
+    mtime: mt && !isNaN(mt) ? mt : Date.now(),
+    ctime: ct && !isNaN(ct) ? ct : Date.now(),
     tags,
     sections,
   };

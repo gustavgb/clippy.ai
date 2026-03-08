@@ -28,3 +28,18 @@ export function formatDate(value: string | number): string {
     return "";
   }
 }
+
+export function formatDateTime(value: string | number): string {
+  try {
+    return new Date(value).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}

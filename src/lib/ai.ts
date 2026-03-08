@@ -2,46 +2,52 @@ import { invoke } from "@tauri-apps/api/core";
 import { settings } from "./settings.svelte";
 import { Bookmark } from "./types";
 import { store } from "./store.svelte";
-import { formatDate } from "./utils";
+import { formatDateTime } from "./utils";
 
-export async function fetchSummary(bookmark: Bookmark) {
-  if (!settings.geminiApiKey) return;
+export type AIPrompt = {
+  title: string;
+  promptTemplate: string;
+};
 
-  const usedPrompt = settings.geminiPrompt;
-  const result = await invoke<string>("fetch_ai_summary", {
-    url: bookmark.url,
-    apiKey: settings.geminiApiKey,
-    model: settings.geminiModel,
-    promptTemplate: usedPrompt,
-  });
-  const summarizedAt = new Date().toISOString();
-  // Update or insert the Summary section directly in the store bookmark
-  const idx = bookmark.sections.findIndex((s) => s.heading === "Summary");
-  const updatedSection = {
-    heading: "Summary",
-    body: result,
-    promptUsed: usedPrompt,
-    summarizedAt,
-  };
-  const newSections =
-    idx !== -1
-      ? bookmark.sections.map((s, i) => (i === idx ? updatedSection : s))
-      : [updatedSection, ...bookmark.sections];
-  const updated = { ...bookmark, sections: newSections };
-  store.updateBookmark(updated);
-  store.saveBookmarks();
-}
+export type QuickPrompt = AIPrompt & {
+  label: string;
+  labelFetching: string;
+};
 
 const QUESTION_TEMPLATE = `Answer the question regarding this webpage.\n\nWebpage content:\n{content}\n\n{question}`;
 
-export async function fetchAnswer(bookmark: Bookmark, question: string) {
+export const quickPrompts: QuickPrompt[] = [
+  {
+    label: "Summarize",
+    labelFetching: "Summarizing",
+    title: "AI Summary",
+    promptTemplate:
+      "Summarize the main content of the following webpage in 3-5 sentences.\n\nWebpage content:\n{content}",
+  },
+  {
+    label: "Analyze credibility",
+    labelFetching: "Analyzing credibility",
+    title: "Credibility analysis",
+    promptTemplate:
+      "Analyze and judge the credibility of this content in 5-7 sentences. Be critical but fair.\n\nWebpage content:\n{content}",
+  },
+];
+
+export function getQuestionPrompt(question: string): AIPrompt {
+  return {
+    promptTemplate: QUESTION_TEMPLATE.replace("{question}", question),
+    title: question,
+  };
+}
+
+export async function fetchAnswer(bookmark: Bookmark, prompt: AIPrompt) {
   if (!settings.geminiApiKey) return;
 
   const result = await invoke<string>("fetch_ai_summary", {
     url: bookmark.url,
     apiKey: settings.geminiApiKey,
     model: settings.geminiModel,
-    promptTemplate: QUESTION_TEMPLATE.replace("{question}", question),
+    promptTemplate: prompt.promptTemplate,
   });
 
   // Update or insert the Summary section directly in the store bookmark
@@ -51,8 +57,8 @@ export async function fetchAnswer(bookmark: Bookmark, question: string) {
     ...b,
     sections: [
       {
-        heading: question,
-        body: `${result}\n\n*${settings.geminiModel} on ${formatDate(Date.now())}*`,
+        heading: `${prompt.title} (${formatDateTime(Date.now())} by ${settings.geminiModel.split("/").at(-1)})`,
+        body: result,
       },
       ...b.sections,
     ],

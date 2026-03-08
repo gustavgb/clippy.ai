@@ -9,6 +9,7 @@ export interface Bookmark {
   title: string;
   tags: string[];
   mtime: number;
+  ctime: number;
   sections: BookmarkSection[];
 }
 

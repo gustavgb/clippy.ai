@@ -158,9 +158,7 @@ class BookmarkStore {
             readTextFile(filePath),
             stat(filePath),
           ]);
-          const bookmark = markdownToBookmark(text);
-          const mt = info.mtime?.getTime();
-          bookmark.mtime = mt && !isNaN(mt) ? mt : Date.now();
+          const bookmark = markdownToBookmark(text, info);
           bookmarks.set(bookmark.id, bookmark);
           bookmarkIds.push(bookmark.id);
         } catch (e) {

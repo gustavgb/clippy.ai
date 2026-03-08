@@ -1,11 +1,16 @@
 <script lang="ts">
     import { invoke } from "@tauri-apps/api/core";
-    import type { Bookmark } from "./types";
     import { store } from "./store.svelte";
     import { confirm } from "@tauri-apps/plugin-dialog";
     import { ui } from "./ui.svelte";
     import { formatRelativeTime } from "./utils";
-    import { fetchAnswer } from "./ai";
+    import {
+        fetchAnswer,
+        getQuestionPrompt,
+        type QuickPrompt,
+        quickPrompts,
+    } from "./ai";
+    import { settings } from "./settings.svelte";
 
     let scrollEl = $state<HTMLDivElement | null>(null);
 
@@ -24,10 +29,16 @@
     let fetchingTitle = $state(false);
     let lastSeenMtime = $state(0);
     const sections = $derived(bookmark?.sections);
-    const mtime = $derived(bookmark?.mtime);
     const tags = $derived(bookmark?.tags);
     let question = $state("");
     let fetchingAnswer = $state(false);
+    let runningQuickPrompts = $state<string[]>([]);
+
+    function isNote(heading: string) {
+        return /note/i.test(heading);
+    }
+
+    const note = $derived(sections?.find((s) => isNote(s.heading)));
 
     // Sync local fields when the file watcher reloads bookmarks from disk.
     $effect(() => {
@@ -115,9 +126,19 @@
 
         if (!bookmark) return;
         fetchingAnswer = true;
-        await fetchAnswer(bookmark, question);
+        await fetchAnswer(bookmark, getQuestionPrompt(question));
         fetchingAnswer = false;
         question = "";
+    }
+
+    async function runQuickPrompt(prompt: QuickPrompt) {
+        if (!bookmark || runningQuickPrompts.indexOf(prompt.label) > -1) return;
+        runningQuickPrompts.push(prompt.label);
+        await fetchAnswer(bookmark, prompt);
+        runningQuickPrompts.splice(
+            runningQuickPrompts.indexOf(prompt.label),
+            1,
+        );
     }
 </script>
 
@@ -132,7 +153,7 @@
         >
         <div class="flex items-center gap-2">
             <span class="text-xs text-base-content/60">
-                {formatRelativeTime(mtime)}
+                {formatRelativeTime(bookmark?.ctime)}
             </span>
             <button
                 class="btn btn-ghost btn-xs opacity-50 hover:opacity-100"
@@ -161,9 +182,9 @@
     <div class="flex-1 overflow-y-auto flex flex-col" bind:this={scrollEl}>
         <!-- Bookmark details -->
         <div
-            class="flex flex-col gap-1 px-4 py-3 border-b border-base-300 items-start"
+            class="flex flex-col gap-1 px-4 py-3 border-b border-base-300 w-full min-w-0"
         >
-            <p class="text-sm">{title}</p>
+            <p class="text-sm w-full min-w-0 truncate" {title}>{title}</p>
             <!-- {#if tags?.length}
                 <div class="flex flex-wrap gap-1 mb-2">
                     {#each tags as tag}
@@ -172,7 +193,7 @@
                 </div>
             {/if} -->
             <button
-                class="text-sm text-primary font-mono underline underline-offset-2 truncate text-left cursor-pointer"
+                class="text-sm text-primary font-mono underline underline-offset-2 w-full min-w-0 truncate text-left cursor-pointer"
                 onclick={openUrl}
                 type="button"
                 tabindex={-1}
@@ -198,12 +219,31 @@
             />
         </div>
 
+        <!-- Note -->
+        {#if note}
+            <div class="flex flex-col gap-1 px-4 py-3 border-b border-base-300">
+                <div class="flex items-center justify-between">
+                    <span
+                        class="text-xs uppercase tracking-widest text-base-content/50 font-mono"
+                        >{note.heading}</span
+                    >
+                </div>
+                {#if note.body}
+                    <p class="text-sm text-base-content/80 whitespace-pre-wrap">
+                        {note.body}
+                    </p>
+                {:else}
+                    <p class="text-sm text-base-content/30 italic">Empty</p>
+                {/if}
+            </div>
+        {/if}
+
         <!-- Ask question -->
         <div class="flex flex-col gap-1 px-4 py-3 border-b border-base-300">
             <label
                 for="ai-prompt"
                 class="text-xs uppercase tracking-widest text-base-content/50 font-mono"
-                >Ask a question</label
+                >Ask AI ({settings.geminiModel.split("/").at(-1)})</label
             >
             <form onsubmit={askQuestion} class="flex items-center gap-2">
                 <input
@@ -215,34 +255,55 @@
                     disabled={fetchingAnswer}
                 />
                 <button class="btn btn-sm"
-                    >{fetchingAnswer ? "Loading..." : "Send"}</button
+                    >{fetchingAnswer ? "Loading..." : "Ask"}</button
                 >
             </form>
+
+            <!-- Quick prompts -->
+            <div class="flex items-center gap-2 mt-2">
+                {#each quickPrompts as prompt}
+                    <button
+                        class="btn btn-sm btn-outline btn-secondary"
+                        onclick={() => runQuickPrompt(prompt)}
+                        disabled={runningQuickPrompts.indexOf(prompt.label) >
+                            -1}
+                        >{runningQuickPrompts.indexOf(prompt.label) > -1
+                            ? prompt.labelFetching
+                            : prompt.label}</button
+                    >
+                {/each}
+            </div>
         </div>
 
         <!-- Read-only sections -->
         {#each sections as section, i}
-            <div class="flex flex-col gap-1 px-4 py-3 border-b border-base-300">
-                <div class="flex items-center justify-between">
-                    <span
-                        class="text-xs uppercase tracking-widest text-base-content/50 font-mono"
-                        >{section.heading}</span
-                    >
-                    <button
-                        class="btn btn-ghost btn-xs opacity-50 hover:opacity-100"
-                        onclick={() => clearSection(i)}
-                    >
-                        Clear
-                    </button>
+            {#if !isNote(section.heading)}
+                <div
+                    class="flex flex-col gap-1 px-4 py-3 border-b border-base-300"
+                >
+                    <div class="flex items-center justify-between">
+                        <span
+                            class="text-xs uppercase tracking-widest text-base-content/50 font-mono"
+                            >{section.heading}</span
+                        >
+                        <button
+                            class="btn btn-ghost btn-xs opacity-50 hover:opacity-100"
+                            onclick={() => clearSection(i)}
+                        >
+                            Clear
+                        </button>
+                    </div>
+                    {#if section.body}
+                        <p
+                            class="text-sm text-base-content/80 whitespace-pre-wrap"
+                        >
+                            {section.body}
+                        </p>
+                    {:else}
+                        <p class="text-sm text-base-content/30 italic">Empty</p>
+                    {/if}
                 </div>
-                {#if section.body}
-                    <p class="text-sm text-base-content/80 whitespace-pre-wrap">
-                        {section.body}
-                    </p>
-                {:else}
-                    <p class="text-sm text-base-content/30 italic">Empty</p>
-                {/if}
-            </div>
+            {/if}
         {/each}
     </div>
 
