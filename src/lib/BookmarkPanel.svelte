@@ -2,7 +2,6 @@
     import { invoke } from "@tauri-apps/api/core";
     import type { Bookmark } from "./types";
     import { store } from "./store.svelte";
-    import { settings } from "./settings.svelte";
     import { confirm } from "@tauri-apps/plugin-dialog";
     import { ui } from "./ui.svelte";
     import { formatRelativeTime } from "./utils";
@@ -10,32 +9,31 @@
     let scrollEl = $state<HTMLDivElement | null>(null);
 
     interface Props {
-        bookmark: Bookmark;
+        bookmarkId: number;
         onclose: () => void;
     }
 
-    let { bookmark, onclose }: Props = $props();
+    let { bookmarkId, onclose }: Props = $props();
 
+    const bookmark = $derived(store.bookmarks.get(bookmarkId));
     // svelte-ignore state_referenced_locally
-    let title = $state(bookmark.title);
+    let title = $state(bookmark?.title);
     // svelte-ignore state_referenced_locally
-    let tagsInput = $state(bookmark.tags.join(", "));
+    let tagsInput = $state(bookmark?.tags.join(", "));
     let fetchingTitle = $state(false);
     let mounted = false;
     let lastSeenMtime = $state(0);
-    const sections = $derived(bookmark.sections);
-    const mtime = $derived(bookmark.mtime);
+    const sections = $derived(bookmark?.sections);
+    const mtime = $derived(bookmark?.mtime);
 
     // Sync local fields when the file watcher reloads bookmarks from disk.
     $effect(() => {
-        const b = store.bookmarks.get(bookmark.id);
-        const mtime = b?.mtime ?? 0;
+        const mtime = bookmark?.mtime ?? 0;
         if (mtime !== lastSeenMtime) {
             lastSeenMtime = mtime;
-            if (b) {
-                mounted = false;
-                title = b.title;
-                tagsInput = b.tags.join(", ");
+            if (bookmark) {
+                title = bookmark.title;
+                tagsInput = bookmark.tags.join(", ");
             }
         }
     });
@@ -44,35 +42,37 @@
     $effect(() => {
         const _t = title,
             _tags = tagsInput; // track deps
-        if (!mounted) {
-            mounted = true;
-            return;
-        }
         const timer = setTimeout(() => save(), 500);
         return () => clearTimeout(timer);
     });
 
     function save() {
         const tags = tagsInput
-            .split(",")
+            ?.split(",")
             .map((t) => t.trim())
             .filter(Boolean);
-        const updated = { ...bookmark, title, tags };
-        store.updateBookmark(updated);
-        store.saveBookmarks();
+        if (bookmark) {
+            const updated = {
+                ...bookmark,
+                title: title || "",
+                tags: tags || [],
+            };
+            store.updateBookmark(updated);
+            store.saveBookmarks();
+        }
     }
 
     function clearSection(index: number) {}
 
     function openUrl() {
-        invoke("open_url", { url: bookmark.url }).catch(() => {
-            window.open(bookmark.url, "_blank");
+        invoke("open_url", { url: bookmark?.url }).catch(() => {
+            window.open(bookmark?.url, "_blank");
         });
     }
 
     function openInEditor() {
         if (!store.dirPath) return;
-        const filePath = `${store.dirPath}/bookmarks/${bookmark.id}.md`;
+        const filePath = `${store.dirPath}/bookmarks/${bookmarkId}.md`;
         invoke("open_path", { path: filePath }).catch(console.error);
     }
 
@@ -82,7 +82,7 @@
             { title: "Delete bookmark?", kind: "warning" },
         );
         if (!confirmation) return;
-        store.deleteBookmark(bookmark.id);
+        store.deleteBookmark(bookmarkId);
         onclose();
     }
 
@@ -101,8 +101,7 @@
     <div
         class="flex items-center justify-between px-4 py-3 border-b border-base-300 shrink-0"
     >
-        <span class="text-xs text-base-content/60 font-mono"
-            >#{bookmark.id}</span
+        <span class="text-xs text-base-content/60 font-mono">#{bookmarkId}</span
         >
         <div class="flex items-center gap-2">
             <span class="text-xs text-base-content/60">
@@ -167,7 +166,7 @@
             <span
                 class="text-sm text-primary font-mono cursor-pointer underline underline-offset-2 truncate block hover:opacity-80"
                 onclick={openUrl}
-                title="Open in browser">{bookmark.url}</span
+                title="Open in browser">{bookmark?.url}</span
             >
         </div>
 

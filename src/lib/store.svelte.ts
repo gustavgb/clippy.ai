@@ -133,9 +133,9 @@ class BookmarkStore {
 
   async openPath(
     dirPath: string,
-    { shouldWatchDir = true, silent = false } = {},
+    { shouldWatchDir = true, silent = false, closeBookmark = true } = {},
   ) {
-    this._stopWatchers();
+    if (shouldWatchDir) this._stopWatchers();
     try {
       const bookmarksDir = `${dirPath}/bookmarks`;
 
@@ -198,7 +198,7 @@ class BookmarkStore {
     }
     if (shouldWatchDir) this._watchDir(this.dirPath);
     await settings.setLastFile(dirPath);
-    ui.activeBookmark = null;
+    if (closeBookmark) ui.activeBookmarkId = null;
   }
 
   async openFolder() {
@@ -230,10 +230,10 @@ class BookmarkStore {
   }
 
   updateBookmark(updated: Bookmark) {
-    // if (
-    //   JSON.stringify(this.bookmarks.get(updated.id)) === JSON.stringify(updated)
-    // )
-    //   return;
+    if (
+      JSON.stringify(this.bookmarks.get(updated.id)) === JSON.stringify(updated)
+    )
+      return;
     this.bookmarks.set(updated.id, updated);
     if (this.dirty.indexOf(updated.id) === -1) {
       this.dirty.push(updated.id);
@@ -270,7 +270,11 @@ class BookmarkStore {
         const kind = event.type as object;
         if (!("modify" in kind) && !("remove" in kind)) return;
 
-        this.openPath(this.dirPath, { silent: true, shouldWatchDir: false });
+        this.openPath(this.dirPath, {
+          silent: true,
+          shouldWatchDir: false,
+          closeBookmark: false,
+        });
       },
       { delayMs: 300 },
     )

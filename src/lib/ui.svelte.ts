@@ -1,9 +1,7 @@
-import { Bookmark } from "./types";
-
 export type Tab = "bookmarks" | "settings";
 
 class UIStore {
-  activeBookmark = $state<Bookmark | null>(null);
+  activeBookmarkId = $state<number | null>(null);
   addDialogOpen = $state(false);
   activeTab = $state<Tab>("bookmarks");
 

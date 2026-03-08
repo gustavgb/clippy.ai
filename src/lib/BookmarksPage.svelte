@@ -227,11 +227,11 @@
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
-                class="px-3 py-3 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-200 {ui
-                    .activeBookmark?.id === b.id
+                class="px-3 py-3 border-b border-base-300 cursor-pointer transition-colors hover:bg-base-200 {ui.activeBookmarkId ===
+                b.id
                     ? 'bg-base-200'
                     : ''}"
-                onclick={() => (ui.activeBookmark = b)}
+                onclick={() => (ui.activeBookmarkId = b.id)}
             >
                 <div class="flex items-baseline gap-1.5 mb-1 flex-wrap">
                     <span
@@ -264,12 +264,11 @@
 
     <!-- Detail panel -->
     <div class="flex-1 overflow-hidden">
-        {#if ui.activeBookmark}
-            {#key ui.activeBookmark.id}
+        {#if ui.activeBookmarkId !== null}
+            {#key ui.activeBookmarkId}
                 <BookmarkPanel
-                    bookmark={store.bookmarks.get(ui.activeBookmark!.id) ??
-                        ui.activeBookmark}
-                    onclose={() => (ui.activeBookmark = null)}
+                    bookmarkId={ui.activeBookmarkId}
+                    onclose={() => (ui.activeBookmarkId = null)}
                 />
             {/key}
         {:else}

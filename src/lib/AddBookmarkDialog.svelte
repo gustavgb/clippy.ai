@@ -35,7 +35,7 @@
             sections: [],
             mtime: Date.now(),
         });
-        ui.activeBookmark = bookmark;
+        ui.activeBookmarkId = bookmark.id;
 
         ui.hideAddDialog();
         saving = false;
