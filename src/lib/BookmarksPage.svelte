@@ -5,10 +5,6 @@
     import { ui } from "./ui.svelte";
     import Fuse from "fuse.js";
 
-    function dirName(path: string) {
-        return path.split("/").at(-1) ?? path;
-    }
-
     let listEl = $state<HTMLDivElement | null>(null);
     let searchEl = $state<HTMLInputElement | null>(null);
 

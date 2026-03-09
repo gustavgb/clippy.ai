@@ -3,6 +3,7 @@ import { settings } from "./settings.svelte";
 import { Bookmark } from "./types";
 import { store } from "./store.svelte";
 import { formatDateTime } from "./utils";
+import { message } from "@tauri-apps/plugin-dialog";
 
 export type AIPrompt = {
   title: string;
@@ -42,13 +43,19 @@ export function getQuestionPrompt(question: string): AIPrompt {
 
 export async function fetchAnswer(bookmark: Bookmark, prompt: AIPrompt) {
   if (!settings.geminiApiKey) return;
+  let result;
 
-  const result = await invoke<string>("fetch_ai_summary", {
-    url: bookmark.url,
-    apiKey: settings.geminiApiKey,
-    model: settings.geminiModel,
-    promptTemplate: prompt.promptTemplate,
-  });
+  try {
+    result = await invoke<string>("fetch_ai_summary", {
+      url: bookmark.url,
+      apiKey: settings.geminiApiKey,
+      model: settings.geminiModel,
+      promptTemplate: prompt.promptTemplate,
+    });
+  } catch (err: any) {
+    await message(String(err), { title: "AI error", kind: "error" });
+    return;
+  }
 
   // Update or insert the Summary section directly in the store bookmark
   const b = store.bookmarks.get(bookmark.id);

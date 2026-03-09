@@ -41,14 +41,8 @@ class BookmarkStore {
   // Bookmarks state
   bookmarks = $state<Map<number, Bookmark>>(new Map());
   dirty = $state<number[]>([]);
-
-  // index = $state<WorkspaceIndex>(structuredClone(EMPTY_INDEX));
-  // bookmarkList = $state<Bookmark[]>([]);
-  // /** Maps bookmark id → file mtime (ms). Updated on load, own writes, and watcher reloads. */
-  // mtimes = $state<Map<number, number>>(new Map());
-  // dirty = $state(false);
   saving = $state(false);
-  error = $state("");
+  lastSaveTime = $state(0);
 
   private unwatchFns: Array<() => void> = [];
 
@@ -106,6 +100,8 @@ class BookmarkStore {
           });
         }
       }
+
+      this.lastSaveTime = Date.now();
     } catch (e) {
       console.error(String(e));
     } finally {
@@ -120,7 +116,6 @@ class BookmarkStore {
     this.bookmarks = new Map();
     this.dirPath = "";
     this.dirty = [];
-    this.error = "";
     updateTitle("clippy.ai");
   }
 
@@ -138,7 +133,16 @@ class BookmarkStore {
       await mkdir(bookmarksDir, { recursive: true });
 
       if (!(await exists(indexPath(dirPath)))) {
-        await this._writeWorkspaceFile();
+        await writeTextFile(
+          indexPath(this.dirPath),
+          JSON.stringify(
+            {
+              idCounter: 0,
+            },
+            null,
+            2,
+          ),
+        );
       }
 
       // Read index
@@ -211,7 +215,7 @@ class BookmarkStore {
       ...partial,
     };
     this.bookmarkIds = [id, ...this.bookmarkIds];
-    this.bookmarks.set(id, bookmark);
+    this.bookmarks = new Map(this.bookmarks).set(id, bookmark);
     this.dirty.push(id);
 
     this._writeWorkspaceFile();
@@ -225,7 +229,8 @@ class BookmarkStore {
       JSON.stringify(this.bookmarks.get(updated.id)) === JSON.stringify(updated)
     )
       return;
-    this.bookmarks.set(updated.id, updated);
+    // Reassign the Map reference so Svelte's $derived tracks the change
+    this.bookmarks = new Map(this.bookmarks).set(updated.id, updated);
     if (this.dirty.indexOf(updated.id) === -1) {
       this.dirty.push(updated.id);
     }
@@ -257,7 +262,8 @@ class BookmarkStore {
     watch(
       watchPath,
       async (event: WatchEvent) => {
-        if (cancelled || this.saving) return;
+        if (cancelled || this.saving || Date.now() - this.lastSaveTime < 500)
+          return;
         const kind = event.type as object;
         if (!("modify" in kind) && !("remove" in kind)) return;
 
