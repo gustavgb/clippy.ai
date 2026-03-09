@@ -6,7 +6,6 @@ class UIStore {
   activeTab = $state<Tab>("bookmarks");
 
   setActiveTab = (tab: Tab) => {
-    console.log("Set tab: " + tab);
     this.activeTab = tab;
   };
 

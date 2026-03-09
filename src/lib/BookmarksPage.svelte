@@ -60,9 +60,22 @@
     };
 
     const onkeydown = (e: KeyboardEvent) => {
-        if (e.ctrlKey && e.key === "f") {
+        if (e.ctrlKey && (e.key === "f" || e.key === "k")) {
             e.preventDefault();
             searchEl?.focus();
+        } else if (
+            e.ctrlKey &&
+            (e.key === "Tab" || (e.shiftKey && e.key === "Unidentified"))
+        ) {
+            const currentIndex = settings.recentWorkspaces.indexOf(
+                store.dirPath,
+            );
+            const change = e.shiftKey ? -1 : 1;
+            const newIndex =
+                (currentIndex + change + settings.recentWorkspaces.length) %
+                settings.recentWorkspaces.length;
+
+            store.openPath(settings.recentWorkspaces[newIndex]);
         }
     };
 </script>
