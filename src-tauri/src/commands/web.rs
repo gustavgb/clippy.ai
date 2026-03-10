@@ -20,7 +20,10 @@ pub async fn fetch_page_title(url: String) -> Result<String, String> {
             if let Some(end) = lower_after.find("</title>") {
                 let raw_title = &after_gt[..end];
                 // Decode HTML entities (handles named entities like &aring;, &amp;, numeric refs, etc.)
-                let title = htmlize::unescape(raw_title).trim().to_string();
+                let title = htmlize::unescape(raw_title)
+                    .trim()
+                    .replace(':', "")
+                    .to_string();
                 if !title.is_empty() {
                     return Ok(title);
                 }
