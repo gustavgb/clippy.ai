@@ -3,13 +3,16 @@ import { Bookmark, BookmarkSection } from "./types";
 
 // Serialises a Bookmark to its markdown file content.
 export function bookmarkToMarkdown(bookmark: Bookmark): string {
-  const tags = bookmark.tags.join(", ");
+  const tagLines =
+    bookmark.tags.length > 0
+      ? ["tags:", ...bookmark.tags.map((t) => `  - ${t}`)]
+      : ["tags:"];
   const lines: string[] = [
     "---",
     `id: ${bookmark.id}`,
     `url: ${bookmark.url}`,
     `title: ${bookmark.title}`,
-    `tags: ${tags}`,
+    ...tagLines,
     "---",
     "",
   ];
@@ -36,14 +39,28 @@ export function markdownToBookmark(content: string, info: FileInfo): Bookmark {
   const frontMatter = fmMatch[1];
   const body = fmMatch[2] ?? "";
 
-  // Parse front-matter key: value lines
+  // Parse front-matter key: value lines, supporting YAML list values
   const meta: Record<string, string> = {};
+  const metaList: Record<string, string[]> = {};
+  let currentListKey: string | null = null;
   for (const line of frontMatter.split("\n")) {
+    const listItem = line.match(/^\s+-\s+(.*)$/);
+    if (listItem && currentListKey) {
+      metaList[currentListKey] = [
+        ...(metaList[currentListKey] ?? []),
+        listItem[1].trim(),
+      ];
+      continue;
+    }
+    currentListKey = null;
     const idx = line.indexOf(": ");
     if (idx !== -1) {
       const key = line.slice(0, idx).trim();
       const value = line.slice(idx + 2).trim();
       meta[key] = value;
+    } else if (line.endsWith(":")) {
+      // Key with no inline value — start of a list
+      currentListKey = line.slice(0, -1).trim();
     }
   }
 
@@ -61,12 +78,14 @@ export function markdownToBookmark(content: string, info: FileInfo): Bookmark {
     sections.push({ heading, body: sectionBody });
   }
 
-  const tags = meta["tags"]
-    ? meta["tags"]
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean)
-    : [];
+  const tags = metaList["tags"]
+    ? metaList["tags"]
+    : meta["tags"]
+      ? meta["tags"]
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : [];
 
   const mt = info.mtime?.getTime();
   const ct = info.birthtime?.getTime();

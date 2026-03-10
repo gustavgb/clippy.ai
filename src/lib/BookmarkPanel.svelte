@@ -253,7 +253,7 @@
                     class="input input-sm w-full"
                     disabled={fetchingAnswer}
                 />
-                <button class="btn btn-sm"
+                <button class="btn btn-sm btn-primary" disabled={!question}
                     >{fetchingAnswer ? "Loading..." : "Ask"}</button
                 >
             </form>
@@ -315,7 +315,7 @@
             onclick={deleteBookmark}>Delete</button
         >
         <button
-            class="btn btn-sm btn-primary"
+            class="btn btn-sm"
             onclick={() => {
                 save();
                 onclose();
