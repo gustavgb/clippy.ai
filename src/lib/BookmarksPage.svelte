@@ -1,6 +1,7 @@
 <script lang="ts">
     import { store } from "./store.svelte";
     import { settings } from "./settings.svelte";
+    import { invoke } from "@tauri-apps/api/core";
     import BookmarkPanel from "./BookmarkPanel.svelte";
     import { ui } from "./ui.svelte";
     import Fuse from "fuse.js";
@@ -239,7 +240,13 @@
                 b.id
                     ? 'bg-base-200'
                     : ''}"
-                onclick={() => (ui.activeBookmarkId = b.id)}
+                onclick={(e) => {
+                    if (e.ctrlKey) {
+                        invoke("open_url", { url: b.url });
+                    } else {
+                        ui.activeBookmarkId = b.id;
+                    }
+                }}
             >
                 <div class="flex items-baseline gap-1.5 mb-1 flex-wrap">
                     <span

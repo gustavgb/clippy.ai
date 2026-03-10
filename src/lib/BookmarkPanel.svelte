@@ -36,6 +36,8 @@
     let question = $state("");
     let fetchingAnswer = $state(false);
     let runningQuickPrompts = $state<string[]>([]);
+    let urlContextMenu = $state<{ x: number; y: number } | null>(null);
+    let urlCopied = $state(false);
 
     // Sync local fields when the file watcher reloads bookmarks from disk.
     $effect(() => {
@@ -87,6 +89,23 @@
         });
 
         store.saveBookmarks();
+    }
+
+    function onUrlContextMenu(e: MouseEvent) {
+        e.preventDefault();
+        urlContextMenu = { x: e.clientX, y: e.clientY };
+    }
+
+    function closeUrlContextMenu() {
+        urlContextMenu = null;
+    }
+
+    async function copyUrl() {
+        if (!bookmark?.url) return;
+        await navigator.clipboard.writeText(bookmark.url);
+        urlCopied = true;
+        urlContextMenu = null;
+        setTimeout(() => (urlCopied = false), 1500);
     }
 
     function openUrl() {
@@ -190,11 +209,12 @@
                 </div>
             {/if} -->
             <button
-                class="text-sm text-primary font-mono underline underline-offset-2 w-full min-w-0 truncate text-left cursor-pointer"
+                class="text-xs text-primary font-mono underline underline-offset-2 w-full min-w-0 truncate text-left cursor-pointer"
                 onclick={openUrl}
+                oncontextmenu={onUrlContextMenu}
                 type="button"
                 tabindex={-1}
-                title="Open in browser"
+                title={urlCopied ? "Copied!" : "Open in browser"}
             >
                 {bookmark?.url}
             </button>
@@ -323,5 +343,62 @@
         >
     </div>
 </div>
+
+{#if urlContextMenu}
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div class="fixed inset-0 z-40" onclick={closeUrlContextMenu}></div>
+    <ul
+        class="menu menu-sm bg-base-200 border border-base-300 rounded-box shadow-lg fixed z-50 p-1 min-w-36"
+        style="left: {urlContextMenu.x}px; top: {urlContextMenu.y}px;"
+    >
+        <li>
+            <button
+                onclick={() => {
+                    openUrl();
+                    closeUrlContextMenu();
+                }}
+                type="button"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="size-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                    />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                Open in browser
+            </button>
+        </li>
+        <li>
+            <button onclick={copyUrl} type="button">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="size-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path
+                        d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                    />
+                </svg>
+                Copy URL
+            </button>
+        </li>
+    </ul>
+{/if}
 
 <style></style>
