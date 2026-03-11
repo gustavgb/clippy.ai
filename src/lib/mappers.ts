@@ -12,6 +12,7 @@ export function bookmarkToMarkdown(bookmark: Bookmark): string {
     `id: ${bookmark.id}`,
     `url: ${bookmark.url}`,
     `title: ${bookmark.title}`,
+    `date: ${new Date(bookmark.date).toISOString()}`,
     ...tagLines,
     "---",
     "",
@@ -95,7 +96,9 @@ export function markdownToBookmark(content: string, info: FileInfo): Bookmark {
     url: meta["url"] ?? "",
     title: meta["title"] ?? "",
     mtime: mt && !isNaN(mt) ? mt : Date.now(),
-    ctime: ct && !isNaN(ct) ? ct : Date.now(),
+    date:
+      meta["date"] ??
+      new Date(ct && !isNaN(ct) ? ct : Date.now()).toISOString(),
     tags,
     sections,
   };

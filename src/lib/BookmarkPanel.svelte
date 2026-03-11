@@ -164,7 +164,7 @@
         >
         <div class="flex items-center gap-2">
             <span class="text-xs text-base-content/60">
-                {formatRelativeTime(bookmark?.ctime)}
+                {formatRelativeTime(bookmark?.date)}
             </span>
             <button
                 class="btn btn-ghost btn-xs opacity-50 hover:opacity-100"
