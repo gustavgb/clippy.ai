@@ -3,7 +3,11 @@
     import { store } from "./store.svelte";
     import { confirm } from "@tauri-apps/plugin-dialog";
     import { ui } from "./ui.svelte";
-    import { formatBookmarkId, formatRelativeTime } from "./utils.svelte";
+    import {
+        formatBookmarkId,
+        formatDateTime,
+        formatRelativeTime,
+    } from "./utils.svelte";
     import { fetchAnswer, getQuestionPrompt } from "./ai";
     import { settings } from "./settings.svelte";
     import { type QuickPrompt } from "./types";
@@ -160,12 +164,17 @@
     <div
         class="flex items-center justify-between px-4 py-3 border-b border-base-300 shrink-0"
     >
-        <span class="text-xs text-base-content/60 font-mono"
+        <span class="text-xs text-base-content/60 font-mono cursor-default"
             >{formatBookmarkId(bookmarkId)}</span
         >
         <div class="flex items-center gap-2">
-            <span class="text-xs text-base-content/60">
-                {formatRelativeTime(bookmark?.date)}
+            <span
+                class="text-xs text-base-content/60 cursor-default"
+                title="Last updated: {formatDateTime(
+                    bookmark?.mtime,
+                )}. Created: {formatDateTime(bookmark?.date)}"
+            >
+                Last updated: {formatRelativeTime(bookmark?.mtime)}
             </span>
             <button
                 class="btn btn-ghost btn-xs opacity-50 hover:opacity-100"

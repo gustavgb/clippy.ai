@@ -227,6 +227,7 @@ class BookmarkStore {
     )
       return;
     // Reassign the Map reference so Svelte's $derived tracks the change
+    updated.mtime = Date.now();
     this.bookmarks = new Map(this.bookmarks).set(updated.id, updated);
     if (this.dirty.indexOf(updated.id) === -1) {
       this.dirty.push(updated.id);

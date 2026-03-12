@@ -19,7 +19,8 @@ export function formatRelativeTime(value: string | number | undefined): string {
   }
 }
 
-export function formatDate(value: string | number): string {
+export function formatDate(value: string | number | undefined): string {
+  if (value === undefined || value === null) return "";
   try {
     return new Date(value).toLocaleDateString(undefined, {
       month: "short",
@@ -31,7 +32,8 @@ export function formatDate(value: string | number): string {
   }
 }
 
-export function formatDateTime(value: string | number): string {
+export function formatDateTime(value: string | number | undefined): string {
+  if (value === undefined || value === null) return "";
   try {
     return new Date(value).toLocaleString(undefined, {
       month: "short",

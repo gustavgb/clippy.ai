@@ -48,7 +48,7 @@
 
 <div class="flex-1 overflow-y-auto p-6">
     <div class="flex items-center w-full mb-6 justify-between">
-        <h2 class="text-xl font-semibold">Settings</h2>
+        <h2 class="text-xl font-semibold cursor-default">Settings</h2>
         <button
             type="button"
             class="btn btn-circle btn-ghost"
@@ -88,7 +88,7 @@
             bind:value={keyInput}
         />
         <div class="label">
-            <span class="label-text-alt text-base-content/60">
+            <span class="label-text-alt text-base-content/60 cursor-default">
                 Get a key at
                 <a
                     href="https://aistudio.google.com/app/apikey"
@@ -127,7 +127,7 @@
             </button>
         </div>
         <div class="label">
-            <span class="label-text-alt text-base-content/60"
+            <span class="label-text-alt text-base-content/60 cursor-default"
                 >Click a model below to select it.</span
             >
         </div>
