@@ -37,9 +37,13 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: lts/*
+          package-manager-cache: false
 
-      - name: Install pnpm
-        run: corepack enable
+      - name: Enable and prepare pnpm 10
+        run: |
+          corepack enable
+          corepack prepare pnpm@10 --activate
+          pnpm --version
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
